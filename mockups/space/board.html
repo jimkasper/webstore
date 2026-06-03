@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Stoll — Board</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+.board-layout { max-width: 1100px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+.board-sidebar { }
+.board-section-nav { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+.bs-header { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); border-bottom: 1px solid var(--border); }
+.bs-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; font-size: 13px; color: var(--text-2); cursor: pointer; border-bottom: 1px solid var(--border); gap: 6px; }
+.bs-item:last-child { border-bottom: none; }
+.bs-item:hover { background: var(--surface-2); color: var(--text); }
+.bs-item.active { background: var(--accent-light); color: var(--text); font-weight: 500; }
+.bs-count { font-size: 11px; background: var(--surface-2); padding: 1px 6px; border-radius: 10px; color: var(--text-3); }
+
+.thread-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
+.thread-card:hover { box-shadow: var(--shadow); }
+.thread-card.pinned { border-left: 3px solid var(--text); }
+.thread-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.thread-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; }
+.thread-meta { flex: 1; }
+.thread-author { font-size: 12px; color: var(--text-3); }
+.thread-author strong { color: var(--text-2); }
+.thread-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+.thread-excerpt { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.thread-footer { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 11px; color: var(--text-3); }
+.thread-stat { display: flex; align-items: center; gap: 3px; }
+.thread-tags { display: flex; gap: 4px; margin-left: auto; }
+.thr-tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.thr-pinned { background: var(--surface-2); color: var(--text-2); }
+.thr-hot { background: #FEF9C3; color: #92400E; }
+.thr-new { background: var(--green-bg); color: var(--green); }
+
+.board-topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.board-title { font-size: 16px; font-weight: 600; flex: 1; }
+.sort-select { padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; font-family: var(--font); color: var(--text-2); background: var(--surface); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl">Wall</a>
+      <a class="snl">About</a>
+      <a class="snl">Media</a>
+      <a class="snl">Blog</a>
+      <a class="snl active">Board</a>
+      <a class="snl">Friends</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-dark btn-sm">+ New thread</div>
+    </div>
+  </div>
+</nav>
+
+<div class="space-cover" style="height:80px;">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+  <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 24px;">
+    <div style="font-family:var(--font-serif);font-size:18px;font-weight:600;color:white;">Alex's Board</div>
+    <div style="margin-left:16px;font-size:13px;color:rgba(255,255,255,.6);">Open discussion · Design, life, and ideas</div>
+  </div>
+</div>
+
+<div class="board-layout">
+  <!-- Board sidebar -->
+  <div class="board-sidebar">
+    <div class="board-section-nav">
+      <div class="bs-header">Sections</div>
+      <div class="bs-item active">💬 All threads <span class="bs-count">38</span></div>
+      <div class="bs-item">📢 Announcements <span class="bs-count">3</span></div>
+      <div class="bs-item">🎨 Design talk <span class="bs-count">14</span></div>
+      <div class="bs-item">📚 Book club <span class="bs-count">7</span></div>
+      <div class="bs-item">🌿 Life & decisions <span class="bs-count">9</span></div>
+      <div class="bs-item">🗺 Off-topic <span class="bs-count">5</span></div>
+    </div>
+    <div class="board-section-nav">
+      <div class="bs-header">Your role</div>
+      <div class="bs-item" style="color:var(--text-3);">Member · Can post</div>
+    </div>
+    <div class="board-section-nav">
+      <div class="bs-header">Board rules</div>
+      <div style="padding:10px 14px;font-size:12px;color:var(--text-2);line-height:1.7;">
+        1. Be curious, not combative.<br>
+        2. No self-promotion without context.<br>
+        3. Credit your sources.<br>
+        4. Assume good faith.
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread list -->
+  <div>
+    <div class="board-topbar">
+      <div class="board-title">All threads</div>
+      <select class="sort-select">
+        <option>Most recent</option>
+        <option>Most replies</option>
+        <option>Top rated</option>
+        <option>Pinned first</option>
+      </select>
+      <div class="btn btn-dark btn-sm">+ New thread</div>
+    </div>
+
+    <div class="thread-card pinned">
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:#A16207;">A</div>
+        <div class="thread-meta">
+          <div class="thread-author">by <strong>Alex Stoll</strong> (owner) · Apr 1, 2026</div>
+        </div>
+        <div class="thread-tags"><span class="thr-tag thr-pinned">📌 Pinned</span></div>
+      </div>
+      <div class="thread-title">Welcome to the board — what it's for and how it works</div>
+      <div class="thread-excerpt">A quick introduction to what I'm hoping this space will be: a place for actual conversation, not performance. The sections are loose categories — feel free to start threads anywhere they fit.</div>
+      <div class="thread-footer">
+        <span class="thread-stat">💬 6 replies</span>
+        <span class="thread-stat">❤️ 34</span>
+        <span class="thread-stat">👁 214</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Last reply: 2 days ago</span>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:#2563EB;">J</div>
+        <div class="thread-meta">
+          <div class="thread-author">by <strong>Jamie O.</strong> · Today</div>
+        </div>
+        <div class="thread-tags"><span class="thr-tag thr-new">New</span></div>
+      </div>
+      <div class="thread-title">The Berlin decision — have you used any formal frameworks for big life calls?</div>
+      <div class="thread-excerpt">Following Alex's blog post about decisions under uncertainty — curious if anyone here uses actual structured methods (pros/cons, decision trees, weighted matrices) or just gut feel.</div>
+      <div class="thread-footer">
+        <span class="thread-stat">💬 12 replies</span>
+        <span class="thread-stat">❤️ 28</span>
+        <span class="thread-stat">🌿 Life & decisions</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Last reply: 1 hour ago</span>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:#16A34A;">L</div>
+        <div class="thread-meta">
+          <div class="thread-author">by <strong>Lena B.</strong> · Apr 22</div>
+        </div>
+        <div class="thread-tags"><span class="thr-tag thr-hot">🔥 Hot</span></div>
+      </div>
+      <div class="thread-title">What's a design pattern you've seen work brilliantly in an unexpected context?</div>
+      <div class="thread-excerpt">I'll start: progressive disclosure used in an onboarding flow for a hardware tool. Every other app in the category just dumps everything on you at once.</div>
+      <div class="thread-footer">
+        <span class="thread-stat">💬 31 replies</span>
+        <span class="thread-stat">❤️ 67</span>
+        <span class="thread-stat">🎨 Design talk</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Last reply: 3 hours ago</span>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:#7C3AED;">M</div>
+        <div class="thread-meta">
+          <div class="thread-author">by <strong>Miriam C.</strong> · Apr 21</div>
+        </div>
+      </div>
+      <div class="thread-title">Book club: "The Art of Choosing" by Sheena Iyengar — anyone read it?</div>
+      <div class="thread-excerpt">Alex mentioned it. I finished it last night. The chapter on how culture shapes choice behaviour is the most interesting thing I've read this year. Anyone else in?</div>
+      <div class="thread-footer">
+        <span class="thread-stat">💬 8 replies</span>
+        <span class="thread-stat">❤️ 22</span>
+        <span class="thread-stat">📚 Book club</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Last reply: yesterday</span>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:#0891B2;">S</div>
+        <div class="thread-meta">
+          <div class="thread-author">by <strong>Sophie K.</strong> · Apr 19</div>
+        </div>
+      </div>
+      <div class="thread-title">Anyone else find morning runs better for thinking than evening ones?</div>
+      <div class="thread-excerpt">I've been tracking this for 6 months. Morning runs: usually have one good idea or solve one problem. Evening runs: just tired. Curious if it's just me.</div>
+      <div class="thread-footer">
+        <span class="thread-stat">💬 15 replies</span>
+        <span class="thread-stat">❤️ 44</span>
+        <span class="thread-stat">🗺 Off-topic</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3);">Last reply: 2 days ago</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheduler — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.cal-grid { display: grid; grid-template-columns: 60px repeat(7,1fr); flex: 1; overflow: hidden; }
+.cal-header { display: grid; grid-template-columns: 60px repeat(7,1fr); border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.cal-day-head { padding: 10px 8px; text-align: center; font-size: 12px; }
+.cal-day-head .day-num { font-size: 22px; font-weight: 600; line-height: 1; }
+.cal-day-head .day-name { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+.cal-day-head.today .day-num { background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.time-col { border-right: 1px solid var(--border); }
+.time-slot { height: 60px; padding: 0 8px; display: flex; align-items: flex-start; padding-top: 4px; font-size: 11px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+.day-col { border-right: 1px solid var(--border); position: relative; }
+.day-cell { height: 60px; border-bottom: 1px solid var(--border); }
+.event-block { position: absolute; left: 4px; right: 4px; border-radius: 4px; padding: 4px 6px; font-size: 11px; font-weight: 500; overflow: hidden; cursor: pointer; }
+.ev-blue { background: #DBEAFE; color: #1D4ED8; border-left: 3px solid #2563EB; }
+.ev-green { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+.ev-amber { background: var(--amber-bg); color: var(--amber); border-left: 3px solid var(--amber); }
+.ev-purple { background: #EDE9FE; color: #7C3AED; border-left: 3px solid #7C3AED; }
+.ev-red { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+.mini-cal { padding: 12px; }
+.mini-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; }
+.mini-day { font-size: 11px; padding: 4px 2px; border-radius: 4px; cursor: pointer; color: var(--text-2); }
+.mini-day:hover { background: var(--surface-2); }
+.mini-day.today { background: var(--accent); color: white; font-weight: 600; }
+.mini-day.other-month { color: var(--text-3); }
+.mini-day-name { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; }
+.sidebar-calendars { padding: 12px 0; }
+.cal-item { display: flex; align-items: center; gap: 8px; padding: 5px 14px; font-size: 13px; cursor: pointer; color: var(--text-2); }
+.cal-item:hover { background: var(--surface-2); }
+.cal-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">📅</span>
+      <div class="topbar-title">Scheduler</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Day</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Week</div>
+      <div class="btn btn-ghost btn-sm">Month</div>
+      <div class="btn btn-ghost btn-sm">Agenda</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">← Apr 21–27</div>
+      <div class="btn btn-ghost btn-sm">Today</div>
+      <div class="btn btn-ghost btn-sm">Apr 28–May 4 →</div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm">+ New event</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar -->
+      <div class="sidebar" style="width:200px;">
+        <div class="mini-cal">
+          <div class="mini-cal-header">
+            <span>← </span><span>April 2026</span><span> →</span>
+          </div>
+          <div class="mini-cal-grid">
+            <div class="mini-day-name">Su</div><div class="mini-day-name">Mo</div><div class="mini-day-name">Tu</div><div class="mini-day-name">We</div><div class="mini-day-name">Th</div><div class="mini-day-name">Fr</div><div class="mini-day-name">Sa</div>
+            <div class="mini-day other-month">29</div><div class="mini-day other-month">30</div><div class="mini-day other-month">31</div><div class="mini-day">1</div><div class="mini-day">2</div><div class="mini-day">3</div><div class="mini-day">4</div>
+            <div class="mini-day">5</div><div class="mini-day">6</div><div class="mini-day">7</div><div class="mini-day">8</div><div class="mini-day">9</div><div class="mini-day">10</div><div class="mini-day">11</div>
+            <div class="mini-day">12</div><div class="mini-day">13</div><div class="mini-day">14</div><div class="mini-day">15</div><div class="mini-day">16</div><div class="mini-day">17</div><div class="mini-day">18</div>
+            <div class="mini-day">19</div><div class="mini-day">20</div><div class="mini-day">21</div><div class="mini-day">22</div><div class="mini-day">23</div><div class="mini-day today">24</div><div class="mini-day">25</div>
+            <div class="mini-day">26</div><div class="mini-day">27</div><div class="mini-day">28</div><div class="mini-day">29</div><div class="mini-day">30</div><div class="mini-day other-month">1</div><div class="mini-day other-month">2</div>
+          </div>
+        </div>
+        <div class="divider" style="margin:0;"></div>
+        <div class="sidebar-calendars">
+          <div class="sidebar-label">My Calendars</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#2563EB;"></div> Personal</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#16A34A;"></div> Work</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#D97706;"></div> Routines</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#7C3AED;"></div> Health</div>
+        </div>
+        <div class="sidebar-calendars" style="padding-top:0;">
+          <div class="sidebar-label">Shared</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#DC2626;"></div> Family</div>
+          <div class="cal-item"><div class="cal-dot" style="background:#0891B2;"></div> Jamie (partner)</div>
+        </div>
+        <div style="padding:10px 14px;margin-top:auto;">
+          <div class="btn btn-outline btn-sm" style="width:100%;justify-content:center;">+ Add calendar</div>
+        </div>
+      </div>
+
+      <!-- Week view -->
+      <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--surface);">
+        <!-- Day headers -->
+        <div class="cal-header">
+          <div style="padding:10px 0;border-right:1px solid var(--border);"></div>
+          <div class="cal-day-head"><div class="day-name">Mon</div><div class="day-num">21</div></div>
+          <div class="cal-day-head"><div class="day-name">Tue</div><div class="day-num">22</div></div>
+          <div class="cal-day-head"><div class="day-name">Wed</div><div class="day-num">23</div></div>
+          <div class="cal-day-head today"><div class="day-name">Thu</div><div class="day-num">24</div></div>
+          <div class="cal-day-head"><div class="day-name">Fri</div><div class="day-num">25</div></div>
+          <div class="cal-day-head"><div class="day-name">Sat</div><div class="day-num">26</div></div>
+          <div class="cal-day-head"><div class="day-name">Sun</div><div class="day-num">27</div></div>
+        </div>
+        <!-- Scrollable time grid -->
+        <div style="flex:1;overflow-y:auto;display:grid;grid-template-columns:60px repeat(7,1fr);">
+          <!-- Time labels -->
+          <div class="time-col">
+            <div class="time-slot">7 AM</div>
+            <div class="time-slot">8 AM</div>
+            <div class="time-slot">9 AM</div>
+            <div class="time-slot">10 AM</div>
+            <div class="time-slot">11 AM</div>
+            <div class="time-slot">12 PM</div>
+            <div class="time-slot">1 PM</div>
+            <div class="time-slot">2 PM</div>
+            <div class="time-slot">3 PM</div>
+            <div class="time-slot">4 PM</div>
+            <div class="time-slot">5 PM</div>
+            <div class="time-slot">6 PM</div>
+            <div class="time-slot">7 PM</div>
+          </div>
+          <!-- Mon -->
+          <div class="day-col">
+            <div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-green" style="top:4px;height:52px;">🏃 Morning run<br><span style="font-size:10px;opacity:.8;">8:00 – 9:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-blue" style="top:4px;height:112px;">📋 Team standup + review<br><span style="font-size:10px;opacity:.8;">12:00 – 1:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Tue -->
+          <div class="day-col">
+            <div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-purple" style="top:4px;height:52px;">🧘 Yoga<br><span style="font-size:10px;opacity:.8;">9:00 – 10:00</span></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-blue" style="top:4px;height:52px;">📞 Client call<br><span style="font-size:10px;opacity:.8;">11:00 – 12:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Wed -->
+          <div class="day-col">
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-amber" style="top:4px;height:112px;">🍽 Lunch with Mum<br><span style="font-size:10px;opacity:.8;">12:00 – 2:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Thu (Today) -->
+          <div class="day-col" style="background:#FAFBFF;">
+            <div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-green" style="top:4px;height:52px;">🏃 Morning run<br><span style="font-size:10px;opacity:.8;">8:00 – 9:00</span></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-blue" style="top:4px;height:52px;">💼 Berlin proposal<br><span style="font-size:10px;opacity:.8;">10:00 – 11:00</span></div>
+            </div>
+            <div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-blue" style="top:4px;height:52px;">📋 Standup<br><span style="font-size:10px;opacity:.8;">12:00 – 12:30</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-red" style="top:4px;height:52px;">📞 Call Mum<br><span style="font-size:10px;opacity:.8;">4:00 – 4:30</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Fri -->
+          <div class="day-col">
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-blue" style="top:4px;height:52px;">📋 Weekly review<br><span style="font-size:10px;opacity:.8;">1:00 – 2:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Sat -->
+          <div class="day-col">
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+            <div class="day-cell" style="position:relative;">
+              <div class="event-block ev-amber" style="top:4px;height:112px;">🎉 Dinner with friends<br><span style="font-size:10px;opacity:.8;">7:00 – 9:00</span></div>
+            </div>
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+          <!-- Sun -->
+          <div class="day-col">
+            <div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div><div class="day-cell"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

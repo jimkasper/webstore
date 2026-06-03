@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ntogether
+      POSTGRES_PASSWORD: ntogether
+      POSTGRES_DB: ntogether
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ntogether"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  engine:
+    build:
+      context: ./services/engine
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://ntogether:ntogether@db:5432/ntogether?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret-change-in-production
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 720h
+      ENGINE_HOST: 0.0.0.0
+      ENGINE_PORT: 8080
+      ENGINE_BASE_URL: http://localhost:8080
+      CORS_ORIGINS: http://localhost:5173,http://localhost:5174
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  engine-ui:
+    build:
+      context: ./apps/engine-ui
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - engine
+
+volumes:
+  pgdata:
+  redisdata:

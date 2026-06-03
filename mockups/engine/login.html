@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+body { background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:40px; width:100%; max-width:400px; box-shadow:var(--shadow-lg); }
+.auth-logo { text-align:center; margin-bottom:32px; }
+.auth-logo-mark { font-size:36px; font-weight:800; color:var(--text); letter-spacing:-1px; }
+.auth-logo-sub  { font-size:13px; color:var(--text-2); margin-top:2px; }
+.login-title { font-size:22px; font-weight:700; margin-bottom:4px; }
+.login-sub   { font-size:13px; color:var(--text-2); margin-bottom:24px; }
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:5px; }
+.field input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; outline:none; color:var(--text); background:var(--bg); }
+.field input:focus { border-color:var(--accent); background:var(--surface); }
+.field-row { display:flex; justify-content:space-between; align-items:center; }
+.field-link { font-size:12px; color:var(--accent); cursor:pointer; }
+.btn-login { width:100%; padding:11px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; margin-top:8px; transition:background .12s; }
+.btn-login:hover { background:#1d4ed8; }
+.auth-alt { text-align:center; font-size:13px; color:var(--text-2); margin-top:20px; }
+.auth-alt a { color:var(--accent); font-weight:500; }
+.tier-privacy-note { background:var(--accent-bg); border:1px solid #BFDBFE; border-radius:var(--radius); padding:10px 12px; font-size:12px; color:var(--text-2); margin-top:16px; display:flex; gap:8px; align-items:flex-start; }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="auth-logo">
+    <div class="auth-logo-mark">nTogether</div>
+    <div class="auth-logo-sub">Your personal platform</div>
+  </div>
+
+  <div class="login-title">Sign in</div>
+  <div class="login-sub">Enter your handle or email and password.</div>
+
+  <div class="field">
+    <label>Handle or email</label>
+    <input type="text" placeholder="@handle or you@example.com" value="@alexchen">
+  </div>
+
+  <div class="field">
+    <div class="field-row">
+      <label style="margin:0;">Password</label>
+      <span class="field-link">Forgot password?</span>
+    </div>
+    <input type="password" placeholder="Your password" value="••••••••••••••" style="margin-top:5px;">
+  </div>
+
+  <button class="btn-login" onclick="this.textContent='Signing in…'">Sign in</button>
+
+  <div class="tier-privacy-note">
+    🔒 Tier 1 &amp; 2 users: your identity is never sent to the platform. Login is verified locally using your private key.
+  </div>
+
+  <div class="auth-alt">New to nTogether? <a href="register.html">Create your SPACE</a></div>
+</div>
+</body>
+</html>

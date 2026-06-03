@@ -1,0 +1,13 @@
+{
+  "name": "barbelo",
+  "private": true,
+  "scripts": {
+    "demo": "cd demo && npm run dev",
+    "demo:build": "cd demo && npm run build",
+    "engine:dev": "docker compose up",
+    "engine:build": "docker compose build",
+    "engine:down": "docker compose down",
+    "engine-ui:dev": "cd apps/engine-ui && npm run dev",
+    "engine-ui:build": "cd apps/engine-ui && npm run build"
+  }
+}

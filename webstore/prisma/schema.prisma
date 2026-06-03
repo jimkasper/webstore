@@ -1,0 +1,211 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  SERVICE
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  FULFILLED
+  CANCELLED
+}
+
+enum DiscountType {
+  FLAT
+  PERCENT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  name         String?
+  addresses    Json     @default("[]")
+  createdAt    DateTime @default(now())
+  orders       Order[]
+  reviews      Review[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  description String         @db.Text
+  basePrice   Float
+  type        ProductType
+  images      String[]
+  active      Boolean        @default(true)
+  categoryId  String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  category    Category?      @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+}
+
+model ProductVariant {
+  id         String          @id @default(cuid())
+  productId  String
+  name       String
+  options    Json
+  price      Float
+  stock      Int             @default(0)
+  sku        String?
+  createdAt  DateTime        @default(now())
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  downloads  DownloadToken[]
+  licenses   LicenseKey[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  status          OrderStatus   @default(PENDING)
+  subtotal        Float
+  tax             Float         @default(0)
+  shipping        Float         @default(0)
+  total           Float
+  currency        String        @default("USD")
+  paymentMethod   String?
+  paymentRef      String?
+  shippingLabel   String?
+  customerId      String?
+  customerEmail   String
+  customerName    String
+  shippingAddress Json?
+  discountCodeId  String?
+  affiliateId     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  discountCode    DiscountCode? @relation(fields: [discountCodeId], references: [id])
+  affiliate       Affiliate?    @relation(fields: [affiliateId], references: [id])
+  items           OrderItem[]
+  affiliateClicks AffiliateClick[]
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  name      String
+  price     Float
+  quantity  Int
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  downloads DownloadToken[]
+  licenses  LicenseKey[]
+}
+
+model DiscountCode {
+  id         String       @id @default(cuid())
+  code       String       @unique
+  type       DiscountType
+  value      Float
+  usageLimit Int?
+  usageCount Int          @default(0)
+  expiresAt  DateTime?
+  active     Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  orders     Order[]
+}
+
+model Affiliate {
+  id            String           @id @default(cuid())
+  code          String           @unique
+  email         String
+  commissionPct Float            @default(10)
+  earnings      Float            @default(0)
+  active        Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  orders        Order[]
+  clicks        AffiliateClick[]
+}
+
+model AffiliateClick {
+  id          String    @id @default(cuid())
+  affiliateId String
+  ip          String?
+  orderId     String?
+  createdAt   DateTime  @default(now())
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  order       Order?    @relation(fields: [orderId], references: [id])
+}
+
+model CartSession {
+  id        String   @id @default(cuid())
+  email     String?
+  items     Json     @default("[]")
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id            String    @id @default(cuid())
+  productId     String
+  customerId    String?
+  reviewerEmail String
+  rating        Int
+  body          String    @db.Text
+  approved      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer      Customer? @relation(fields: [customerId], references: [id])
+}
+
+model DownloadToken {
+  id            String          @id @default(cuid())
+  orderItemId   String
+  variantId     String?
+  token         String          @unique @default(cuid())
+  expiresAt     DateTime
+  usesRemaining Int
+  createdAt     DateTime        @default(now())
+  orderItem     OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  variant       ProductVariant? @relation(fields: [variantId], references: [id])
+}
+
+model LicenseKey {
+  id          String          @id @default(cuid())
+  orderItemId String
+  variantId   String?
+  key         String          @unique
+  activated   Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  orderItem   OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+}

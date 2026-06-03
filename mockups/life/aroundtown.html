@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AROUND TOWN — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+/* ── Layout ─────────────────────────────────────────────── */
+.at-shell { display: flex; height: 100vh; overflow: hidden; }
+.at-left   { width: 420px; background: var(--bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+.at-detail { flex: 1; background: var(--surface); overflow-y: auto; }
+
+/* ── Top bar ─────────────────────────────────────────────── */
+.at-topbar { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.at-topbar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.at-title { font-size: 16px; font-weight: 700; flex: 1; }
+.at-add-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+.at-search { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23A1A1AA' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 8px center no-repeat; outline: none; color: var(--text); margin-bottom: 8px; }
+.at-search:focus { border-color: var(--accent); }
+
+/* ── Filter pills ────────────────────────────────────────── */
+.at-filters { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+.at-filters::-webkit-scrollbar { height: 0; }
+.at-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); color: var(--text-2); background: var(--surface); white-space: nowrap; transition: all .12s; }
+.at-pill:hover { border-color: var(--accent); color: var(--accent); }
+.at-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── Card list ───────────────────────────────────────────── */
+.at-list { flex: 1; overflow-y: auto; }
+.at-card { display: flex; gap: 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; position: relative; }
+.at-card:hover { background: var(--surface-2); }
+.at-card.selected { background: var(--accent-bg); }
+.at-card-stripe { width: 4px; flex-shrink: 0; border-radius: 0; }
+.at-card-body { flex: 1; padding: 12px 14px; min-width: 0; }
+.at-card-top { display: flex; align-items: flex-start; gap: 8px; }
+.at-card-icon { font-size: 18px; flex-shrink: 0; line-height: 1.2; }
+.at-card-info { flex: 1; min-width: 0; }
+.at-card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.at-card-cat { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.at-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.at-star { font-size: 14px; color: var(--border); }
+.at-star.on { color: #F59E0B; }
+.at-card-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-top: 6px; }
+.at-badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
+.at-badge-special { background: var(--amber-bg); color: var(--amber); }
+.at-badge-friends { background: var(--accent-bg); color: var(--accent); }
+.at-badge-schedule { background: var(--surface-2); color: var(--text-3); }
+
+/* ── Schedule label ──────────────────────────────────────── */
+.at-schedule { font-size: 11px; color: var(--text-3); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+/* ── Detail panel ────────────────────────────────────────── */
+.at-detail-inner { padding: 28px 32px 48px; }
+.at-detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 8px; color: var(--text-3); font-size: 14px; }
+
+.at-det-hero { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+.at-det-icon { width: 56px; height: 56px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.at-det-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.at-det-cat { font-size: 13px; color: var(--text-3); margin-bottom: 8px; }
+.at-det-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.at-act-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.at-act-btn:hover { background: var(--surface-2); }
+
+.at-divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+.at-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 10px; }
+
+/* ── Specials ─────────────────────────────────────────────── */
+.at-special-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 12px; }
+.at-special-stripe { width: 3px; border-radius: 2px; flex-shrink: 0; }
+.at-special-body { flex: 1; min-width: 0; }
+.at-special-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.at-special-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.at-special-sched { font-size: 11px; color: var(--text-3); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.at-special-type { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+
+/* ── Friends on staff ─────────────────────────────────────── */
+.at-friend-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.at-friend-row:last-child { border-bottom: none; }
+.at-friend-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: #fff; flex-shrink: 0; }
+.at-friend-info { flex: 1; }
+.at-friend-name { font-size: 13px; font-weight: 500; }
+.at-friend-role { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.at-friend-sched { font-size: 11px; color: var(--text-2); margin-top: 3px; }
+.at-working-now { font-size: 10px; font-weight: 600; color: var(--green); background: var(--green-bg); padding: 2px 7px; border-radius: 4px; }
+.at-not-working { font-size: 10px; color: var(--text-3); background: var(--surface-2); padding: 2px 7px; border-radius: 4px; }
+
+/* ── Notes / tags ─────────────────────────────────────────── */
+.at-note-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.at-tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.at-tag { padding: 3px 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<div class="at-shell">
+
+  <!-- ── Left: filter + cards ──────────────────────────────── -->
+  <div class="at-left">
+    <div class="at-topbar">
+      <div class="at-topbar-row">
+        <div class="at-title">🗺 Around Town</div>
+        <button class="at-add-btn">+ Add</button>
+      </div>
+      <input class="at-search" placeholder="Search places, events…">
+      <div class="at-filters">
+        <div class="at-pill active" onclick="filterPill(this)">All</div>
+        <div class="at-pill" onclick="filterPill(this)">🍽️ Restaurants</div>
+        <div class="at-pill" onclick="filterPill(this)">🍺 Bars</div>
+        <div class="at-pill" onclick="filterPill(this)">📅 Events</div>
+        <div class="at-pill" onclick="filterPill(this)">🎭 Shows</div>
+        <div class="at-pill" onclick="filterPill(this)">🏋️ Fitness</div>
+        <div class="at-pill" onclick="filterPill(this)">☕ Cafés</div>
+        <div class="at-pill" onclick="filterPill(this)">🛍️ Shops</div>
+        <div class="at-pill" onclick="filterPill(this)">⭐ Priority</div>
+      </div>
+    </div>
+
+    <div class="at-list">
+
+      <!-- Rusty Fork -->
+      <div class="at-card selected" onclick="showDetail('rusty-fork')">
+        <div class="at-card-stripe" style="background:#E8603C;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">🍽️</div>
+            <div class="at-card-info">
+              <div class="at-card-name">The Rusty Fork</div>
+              <div class="at-card-cat">Restaurant · Mission District</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star on">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-special">2 specials</span>
+                <span class="at-badge at-badge-friends">2 friends</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 No set schedule</div>
+        </div>
+      </div>
+
+      <!-- Neon Owl -->
+      <div class="at-card" onclick="showDetail('neon-owl')">
+        <div class="at-card-stripe" style="background:#D4A017;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">🍺</div>
+            <div class="at-card-info">
+              <div class="at-card-name">The Neon Owl</div>
+              <div class="at-card-cat">Bar · SOMA</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star on">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-special">3 specials</span>
+                <span class="at-badge at-badge-friends">1 friend</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 No set schedule</div>
+        </div>
+      </div>
+
+      <!-- Jazz Thursdays -->
+      <div class="at-card" onclick="showDetail('jazz')">
+        <div class="at-card-stripe" style="background:#27AE60;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">🎭</div>
+            <div class="at-card-info">
+              <div class="at-card-name">Jazz Thursdays @ Bottom of the Hill</div>
+              <div class="at-card-cat">Show · Recurring Event</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-friends">3 friends go</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 Every Thursday 8pm–11pm</div>
+        </div>
+      </div>
+
+      <!-- The National -->
+      <div class="at-card" onclick="showDetail('national')">
+        <div class="at-card-stripe" style="background:#27AE60;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">🎭</div>
+            <div class="at-card-info">
+              <div class="at-card-name">The National — Live</div>
+              <div class="at-card-cat">Concert · One-time Event</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star on">★</div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 Jun 14, 2026</div>
+        </div>
+      </div>
+
+      <!-- Trivia Night -->
+      <div class="at-card" onclick="showDetail('trivia')">
+        <div class="at-card-stripe" style="background:#4A90D9;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">📅</div>
+            <div class="at-card-info">
+              <div class="at-card-name">Trivia Night @ The Monk</div>
+              <div class="at-card-cat">Event · Recurring</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-friends">2 friends go</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 Every Wednesday 7pm</div>
+        </div>
+      </div>
+
+      <!-- Pressed -->
+      <div class="at-card" onclick="showDetail('pressed')">
+        <div class="at-card-stripe" style="background:#A16207;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">☕</div>
+            <div class="at-card-info">
+              <div class="at-card-name">Pressed Coffee</div>
+              <div class="at-card-cat">Café · Castro</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-special">1 special</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 No set schedule</div>
+        </div>
+      </div>
+
+      <!-- Pacific Fitness -->
+      <div class="at-card" onclick="showDetail('pacific')">
+        <div class="at-card-stripe" style="background:#E91E63;"></div>
+        <div class="at-card-body">
+          <div class="at-card-top">
+            <div class="at-card-icon">🏋️</div>
+            <div class="at-card-info">
+              <div class="at-card-name">Pacific Fitness</div>
+              <div class="at-card-cat">Fitness · Potrero Hill</div>
+            </div>
+            <div class="at-card-right">
+              <div class="at-star">★</div>
+              <div class="at-card-badges">
+                <span class="at-badge at-badge-friends">1 friend</span>
+              </div>
+            </div>
+          </div>
+          <div class="at-schedule">📅 Every Mon, Wed, Fri 6am</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Detail panel ───────────────────────────────────────── -->
+  <div class="at-detail">
+
+    <!-- Rusty Fork detail -->
+    <div id="detail-rusty-fork" class="at-detail-inner">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#4D1F0A;">🍽️</div>
+        <div>
+          <div class="at-det-name">The Rusty Fork</div>
+          <div class="at-det-cat">🍽️ Restaurant · Mission District, San Francisco</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+            <div class="at-act-btn">🗑 Remove</div>
+          </div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;color:#F59E0B;">★</div>
+      </div>
+
+      <div class="at-divider"></div>
+
+      <!-- Specials -->
+      <div class="at-section-title">Specials</div>
+
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#F59E0B;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">Happy Hour</div>
+            <span class="at-special-type" style="background:var(--amber-bg);color:var(--amber);">Happy Hour</span>
+          </div>
+          <div class="at-special-desc">Half-price cocktails, $5 drafts, apps half off. Best seats are at the bar.</div>
+          <div class="at-special-sched">📅 Every Mon–Fri 4pm–7pm</div>
+        </div>
+      </div>
+
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#4ADE80;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">Wing Night</div>
+            <span class="at-special-type" style="background:var(--green-bg);color:var(--green);">Weekly Special</span>
+          </div>
+          <div class="at-special-desc">25¢ wings all night. Get there early — they sell out by 9pm.</div>
+          <div class="at-special-sched">📅 Every Tuesday all day</div>
+        </div>
+      </div>
+
+      <div class="at-divider"></div>
+
+      <!-- Friends on staff -->
+      <div class="at-section-title">Friends on Staff</div>
+
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#4F46E5;">AC</div>
+        <div class="at-friend-info">
+          <div class="at-friend-name">Alex Chen</div>
+          <div class="at-friend-role">Bartender</div>
+          <div class="at-friend-sched">📅 Thu–Sat 7pm–2am</div>
+        </div>
+        <div>
+          <div class="at-working-now">Working tonight</div>
+        </div>
+      </div>
+
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#BE185D;">SW</div>
+        <div class="at-friend-info">
+          <div class="at-friend-name">Sarah Williams</div>
+          <div class="at-friend-role">Server</div>
+          <div class="at-friend-sched">📅 Mon, Wed, Fri 5pm–11pm</div>
+        </div>
+        <div>
+          <div class="at-not-working">Not tonight</div>
+        </div>
+      </div>
+
+      <div class="at-divider"></div>
+
+      <!-- Notes & tags -->
+      <div class="at-section-title">Notes</div>
+      <div class="at-note-box">Great spot for post-show dinners. Seats 40, gets crowded after 8pm on weekends. Ask for the back patio in summer.</div>
+
+      <div style="margin-top:12px;">
+        <div class="at-tag-row">
+          <span class="at-tag">Date night</span>
+          <span class="at-tag">Post-show</span>
+          <span class="at-tag">Outdoor seating</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neon Owl detail -->
+    <div id="detail-neon-owl" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#2D1F00;">🍺</div>
+        <div>
+          <div class="at-det-name">The Neon Owl</div>
+          <div class="at-det-cat">🍺 Bar / Nightlife · SOMA</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+            <div class="at-act-btn">🗑 Remove</div>
+          </div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;color:#F59E0B;">★</div>
+      </div>
+
+      <div class="at-divider"></div>
+
+      <div class="at-section-title">Specials</div>
+
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#F59E0B;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">Happy Hour</div>
+            <span class="at-special-type" style="background:var(--amber-bg);color:var(--amber);">Happy Hour</span>
+          </div>
+          <div class="at-special-desc">$6 well drinks, $5 PBR tall boys, $8 wine. DJs spin starting at 6pm.</div>
+          <div class="at-special-sched">📅 Every weekday 4pm–8pm</div>
+        </div>
+      </div>
+
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#4ADE80;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">Bottomless Brunch</div>
+            <span class="at-special-type" style="background:var(--green-bg);color:var(--green);">Weekly Special</span>
+          </div>
+          <div class="at-special-desc">$25 bottomless mimosas & bloody marys with any brunch entrée. Reserve ahead.</div>
+          <div class="at-special-sched">📅 Every Sat–Sun 10am–3pm</div>
+        </div>
+      </div>
+
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#60A5FA;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">NYE Party 2027</div>
+            <span class="at-special-type" style="background:var(--accent-bg);color:var(--accent);">One-time Deal</span>
+          </div>
+          <div class="at-special-desc">Open bar 10pm–1am, live DJ, party favors. $75 advance tickets only.</div>
+          <div class="at-special-sched">📅 Dec 31, 2026</div>
+        </div>
+      </div>
+
+      <div class="at-divider"></div>
+
+      <div class="at-section-title">Friends on Staff</div>
+
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#B45309;">DJ</div>
+        <div class="at-friend-info">
+          <div class="at-friend-name">DJ Ramirez</div>
+          <div class="at-friend-role">Resident DJ</div>
+          <div class="at-friend-sched">📅 Fri–Sat 10pm–3am</div>
+        </div>
+        <div>
+          <div class="at-not-working">Not tonight</div>
+        </div>
+      </div>
+
+      <div class="at-divider"></div>
+      <div class="at-section-title">Notes</div>
+      <div class="at-note-box">Best spot for late nights. Cash only at the bar. Back room has a pool table — get there before 11.</div>
+      <div style="margin-top:12px;">
+        <div class="at-tag-row">
+          <span class="at-tag">Late night</span>
+          <span class="at-tag">DJ nights</span>
+          <span class="at-tag">Cash preferred</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jazz Thursdays -->
+    <div id="detail-jazz" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#0D2B1A;">🎭</div>
+        <div>
+          <div class="at-det-name">Jazz Thursdays</div>
+          <div class="at-det-cat">🎭 Show · Bottom of the Hill · Recurring Event</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+          </div>
+        </div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-section-title">Schedule</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">📅 Every Thursday · 8pm–11pm</div>
+      <div class="at-section-title">Friends who come</div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#4F46E5;">AC</div>
+        <div class="at-friend-info"><div class="at-friend-name">Alex Chen</div></div>
+      </div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#047857;">KT</div>
+        <div class="at-friend-info"><div class="at-friend-name">Kai Thompson</div></div>
+      </div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#9333EA;">LP</div>
+        <div class="at-friend-info"><div class="at-friend-name">Lisa Park</div></div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-note-box">Best weekly music in the city. Gets packed — arrive by 7:30. $10 cover at the door.</div>
+    </div>
+
+    <!-- The National concert -->
+    <div id="detail-national" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#0D2B1A;">🎭</div>
+        <div>
+          <div class="at-det-name">The National — Live</div>
+          <div class="at-det-cat">🎭 Concert · Chase Center · One-time Event</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+          </div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;color:#F59E0B;">★</div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-section-title">Date</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">📅 Saturday, June 14, 2026 · 8pm</div>
+      <div class="at-divider"></div>
+      <div class="at-note-box">Have tickets. Row F, section 112. Meet outside Gate 5 at 7:30.</div>
+      <div style="margin-top:12px;"><div class="at-tag-row"><span class="at-tag">Concerts 2026</span><span class="at-tag">Have tickets</span></div></div>
+    </div>
+
+    <!-- Trivia Night -->
+    <div id="detail-trivia" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#1E2F4A;">📅</div>
+        <div>
+          <div class="at-det-name">Trivia Night @ The Monk</div>
+          <div class="at-det-cat">📅 Recurring Event · Haight</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+          </div>
+        </div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-section-title">Schedule</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">📅 Every Wednesday · 7pm</div>
+      <div class="at-section-title">Friends who come</div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#0D9488;">MJ</div>
+        <div class="at-friend-info"><div class="at-friend-name">Maya Johnson</div></div>
+      </div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#B45309;">DJ</div>
+        <div class="at-friend-info"><div class="at-friend-name">DJ Ramirez</div></div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-note-box">$2 off drinks during trivia. Teams of up to 6. We're "The Vinyl Counts." Consistent top 3 finish.</div>
+    </div>
+
+    <!-- Pressed Coffee -->
+    <div id="detail-pressed" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#2C1A00;">☕</div>
+        <div>
+          <div class="at-det-name">Pressed Coffee</div>
+          <div class="at-det-cat">☕ Café · Castro</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+          </div>
+        </div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-section-title">Specials</div>
+      <div class="at-special-card">
+        <div class="at-special-stripe" style="background:#A16207;"></div>
+        <div class="at-special-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="at-special-name">Seasonal Latte Menu</div>
+            <span class="at-special-type" style="background:var(--amber-bg);color:var(--amber);">Seasonal</span>
+          </div>
+          <div class="at-special-desc">Spring menu: lavender oat latte, honey cardamom cortado. Limited run through May.</div>
+          <div class="at-special-sched">📅 Seasonal — ends May 31</div>
+        </div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-note-box">Best pour-over in the neighborhood. Power outlets along the back wall. Gets busy 9–11am.</div>
+      <div style="margin-top:12px;"><div class="at-tag-row"><span class="at-tag">Work-friendly</span><span class="at-tag">Pour-over</span></div></div>
+    </div>
+
+    <!-- Pacific Fitness -->
+    <div id="detail-pacific" class="at-detail-inner" style="display:none;">
+      <div class="at-det-hero">
+        <div class="at-det-icon" style="background:#3B0015;">🏋️</div>
+        <div>
+          <div class="at-det-name">Pacific Fitness</div>
+          <div class="at-det-cat">🏋️ Fitness · Potrero Hill</div>
+          <div class="at-det-actions">
+            <div class="at-act-btn">⭐ Priority</div>
+            <div class="at-act-btn">✏️ Edit</div>
+          </div>
+        </div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-section-title">Schedule</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">📅 Every Mon, Wed, Fri · 6am class</div>
+      <div class="at-section-title">Friends on Staff</div>
+      <div class="at-friend-row">
+        <div class="at-friend-avatar" style="background:#047857;">KT</div>
+        <div class="at-friend-info">
+          <div class="at-friend-name">Kai Thompson</div>
+          <div class="at-friend-role">Personal Trainer</div>
+          <div class="at-friend-sched">📅 Mon–Thu 5am–2pm</div>
+        </div>
+        <div><div class="at-working-now">Working today</div></div>
+      </div>
+      <div class="at-divider"></div>
+      <div class="at-note-box">Kai gives me a discount. Don't forget to book the 6am class online the day before — fills up fast.</div>
+      <div style="margin-top:12px;"><div class="at-tag-row"><span class="at-tag">Morning routine</span><span class="at-tag">Book ahead</span></div></div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="detail-empty" class="at-detail-empty" style="display:none;">
+      <div style="font-size:40px;">🗺</div>
+      <div style="font-weight:600;color:var(--text-2);">Select a place or event</div>
+      <div style="font-size:12px;">Click any card to see details</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function filterPill(el) {
+  document.querySelectorAll('.at-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+function showDetail(id) {
+  document.querySelectorAll('[id^="detail-"]').forEach(el => el.style.display = 'none');
+  const el = document.getElementById('detail-' + id);
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('.at-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+</script>
+</body>
+</html>

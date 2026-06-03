@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — DASH</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto; gap: 16px; padding: 20px; overflow-y: auto; }
+.widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.widget-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.widget-title a { font-size: 11px; font-weight: 400; color: var(--accent); text-transform: none; letter-spacing: 0; }
+.widget.span2 { grid-column: span 2; }
+.widget.span3 { grid-column: span 3; }
+
+/* Greeting */
+.greeting-name { font-family: var(--font-serif); font-size: 26px; font-weight: 600; color: var(--text); }
+.greeting-sub { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.greeting-chips { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.g-chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; }
+.g-chip-primary { background: var(--accent); color: white; }
+.g-chip-outline { background: transparent; border: 1px solid var(--border); color: var(--text-2); }
+.g-chip-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Today's schedule strip */
+.schedule-strip { display: flex; flex-direction: column; gap: 6px; }
+.schedule-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); }
+.schedule-item.now { background: var(--accent-bg); border-left: 3px solid var(--accent); }
+.schedule-time { font-size: 11px; color: var(--text-3); width: 48px; flex-shrink: 0; text-align: right; }
+.schedule-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.schedule-title { font-size: 13px; color: var(--text); flex: 1; }
+.schedule-title.now { font-weight: 500; color: var(--accent); }
+.schedule-dur { font-size: 11px; color: var(--text-3); }
+
+/* Habit ring strip */
+.habit-ring-row { display: flex; gap: 16px; }
+.habit-ring-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.habit-ring-wrap { position: relative; width: 52px; height: 52px; }
+.habit-svg { transform: rotate(-90deg); }
+.hr-bg { fill: none; stroke: var(--border); stroke-width: 5; }
+.hr-fill { fill: none; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 126; }
+.hr-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.habit-ring-name { font-size: 10px; color: var(--text-3); text-align: center; }
+.habit-ring-streak { font-size: 11px; font-weight: 600; color: var(--amber); }
+
+/* Macro donut */
+.mini-donut { width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(#2563EB 0% 42%, #16A34A 42% 68%, #D97706 68% 82%, var(--border) 82% 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mini-donut-inner { width: 52px; height: 52px; background: var(--surface); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-cal { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1; }
+.donut-sub { font-size: 9px; color: var(--text-3); }
+
+/* Finances */
+.fin-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.fin-row:last-child { border-bottom: none; }
+.fin-label { color: var(--text-2); }
+.fin-val { font-weight: 600; }
+.fin-pos { color: var(--green); }
+.fin-neg { color: var(--red); }
+
+/* Goal progress */
+.goal-mini { margin-bottom: 10px; }
+.goal-mini-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 3px; }
+.goal-mini-label { font-weight: 500; color: var(--text); }
+
+/* Quick capture */
+.qc-input { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; font-family: var(--font); color: var(--text); outline: none; background: var(--bg); }
+.qc-input:focus { border-color: var(--accent); }
+.qc-row { display: flex; gap: 6px; margin-top: 8px; }
+.qc-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; color: var(--text-2); cursor: pointer; background: var(--surface); }
+.qc-btn:hover { background: var(--surface-2); }
+
+/* Activity feed mini */
+.activity-mini { display: flex; flex-direction: column; gap: 8px; }
+.am-item { display: flex; align-items: flex-start; gap: 8px; }
+.am-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.am-text { font-size: 12px; color: var(--text-2); line-height: 1.5; flex: 1; }
+.am-time { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+
+/* Journal prompt */
+.journal-prompt { background: #FEF9C3; border-radius: var(--radius); padding: 12px 14px; font-size: 13px; color: #92400E; line-height: 1.6; margin-bottom: 10px; }
+
+/* Stats grid (top row) */
+.stat-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.stat-strip-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.ss-val { font-size: 22px; font-weight: 700; color: var(--text); }
+.ss-label { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.ss-change { font-size: 11px; margin-top: 4px; }
+.ss-up { color: var(--green); }
+.ss-down { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon active" title="DASH">⊞</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon" title="SPACE">🏠</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">⊞</span>
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-sep"></div>
+      <div style="font-size:13px;color:var(--text-2);">Thursday, April 24, 2026</div>
+      <div class="topbar-right">
+        <div class="btn btn-ghost btn-sm">⚙ Customize</div>
+        <div class="btn btn-ghost btn-sm">+ Add widget</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <!-- Row 1: Greeting + Stats -->
+      <div class="widget span2">
+        <div class="greeting-name">Good morning, Alex ☀️</div>
+        <div class="greeting-sub">You have 4 tasks today, 3 events, and your morning run is pending.</div>
+        <div class="greeting-chips">
+          <div class="g-chip g-chip-primary">📓 Start journal</div>
+          <div class="g-chip g-chip-outline">📅 View schedule</div>
+          <div class="g-chip g-chip-outline">✅ See task list</div>
+          <div class="g-chip g-chip-outline">💬 3 messages</div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Quick capture</div>
+        <textarea class="qc-input" rows="3" placeholder="Capture a thought, task, or idea…"></textarea>
+        <div class="qc-row">
+          <div class="qc-btn">📋 Task</div>
+          <div class="qc-btn">💡 Idea</div>
+          <div class="qc-btn">📓 Journal</div>
+          <div class="qc-btn">🔬 Note</div>
+          <div class="qc-btn g-chip-primary" style="margin-left:auto;background:var(--accent);color:white;border-color:var(--accent);">Save</div>
+        </div>
+      </div>
+
+      <!-- Row 2: Today schedule + Habits + Journal -->
+      <div class="widget">
+        <div class="widget-title">Today's schedule <a href="#">Full view →</a></div>
+        <div class="schedule-strip">
+          <div class="schedule-item">
+            <div class="schedule-time">8:00</div>
+            <div class="schedule-dot" style="background:var(--green);"></div>
+            <div class="schedule-title">🏃 Morning run</div>
+            <div class="schedule-dur">60m</div>
+          </div>
+          <div class="schedule-item now">
+            <div class="schedule-time" style="color:var(--accent);">10:00</div>
+            <div class="schedule-dot" style="background:var(--accent);"></div>
+            <div class="schedule-title now">💼 Berlin proposal</div>
+            <div class="schedule-dur" style="color:var(--accent);">60m</div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">12:00</div>
+            <div class="schedule-dot" style="background:#2563EB;"></div>
+            <div class="schedule-title">📋 Standup</div>
+            <div class="schedule-dur">30m</div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">16:00</div>
+            <div class="schedule-dot" style="background:#DC2626;"></div>
+            <div class="schedule-title">📞 Call Mum</div>
+            <div class="schedule-dur">30m</div>
+          </div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Habits today <a href="#">Planner →</a></div>
+        <div class="habit-ring-row">
+          <div class="habit-ring-item">
+            <div class="habit-ring-wrap">
+              <svg class="habit-svg" viewBox="0 0 52 52" width="52" height="52">
+                <circle class="hr-bg" cx="26" cy="26" r="20"/>
+                <circle class="hr-fill" cx="26" cy="26" r="20" stroke="#DC2626" stroke-dashoffset="126"/>
+              </svg>
+              <div class="hr-center">🏃</div>
+            </div>
+            <div class="habit-ring-name">Run</div>
+            <div class="habit-ring-streak">🔥14</div>
+          </div>
+          <div class="habit-ring-item">
+            <div class="habit-ring-wrap">
+              <svg class="habit-svg" viewBox="0 0 52 52" width="52" height="52">
+                <circle class="hr-bg" cx="26" cy="26" r="20"/>
+                <circle class="hr-fill" cx="26" cy="26" r="20" stroke="#16A34A" stroke-dashoffset="0"/>
+              </svg>
+              <div class="hr-center">💧</div>
+            </div>
+            <div class="habit-ring-name">Water</div>
+            <div class="habit-ring-streak">🔥21</div>
+          </div>
+          <div class="habit-ring-item">
+            <div class="habit-ring-wrap">
+              <svg class="habit-svg" viewBox="0 0 52 52" width="52" height="52">
+                <circle class="hr-bg" cx="26" cy="26" r="20"/>
+                <circle class="hr-fill" cx="26" cy="26" r="20" stroke="#16A34A" stroke-dashoffset="0"/>
+              </svg>
+              <div class="hr-center">📖</div>
+            </div>
+            <div class="habit-ring-name">Read</div>
+            <div class="habit-ring-streak">🔥5</div>
+          </div>
+          <div class="habit-ring-item">
+            <div class="habit-ring-wrap">
+              <svg class="habit-svg" viewBox="0 0 52 52" width="52" height="52">
+                <circle class="hr-bg" cx="26" cy="26" r="20"/>
+                <circle class="hr-fill" cx="26" cy="26" r="20" stroke="#DC2626" stroke-dashoffset="126"/>
+              </svg>
+              <div class="hr-center">🧘</div>
+            </div>
+            <div class="habit-ring-name">Meditate</div>
+            <div class="habit-ring-streak">🔥3</div>
+          </div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Journal <a href="#">Open →</a></div>
+        <div class="journal-prompt">☀️ You haven't written this morning yet. Take 5 minutes — what are you grateful for today?</div>
+        <div class="btn" style="background:var(--accent);color:white;width:100%;justify-content:center;border-radius:var(--radius);">📓 Start morning entry</div>
+      </div>
+
+      <!-- Row 3: Tasks + Diet + Finance -->
+      <div class="widget">
+        <div class="widget-title">Tasks today <a href="#">All lists →</a></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;"></div>
+            <span style="flex:1;font-size:13px;">Finish Berlin proposal draft</span>
+            <span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:3px;font-weight:600;">HIGH</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;"></div>
+            <span style="flex:1;font-size:13px;">Call Mum (evening)</span>
+            <span style="font-size:11px;color:var(--text-3);">Today</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <div style="width:16px;height:16px;border-radius:50%;background:var(--green);border:2px solid var(--green);flex-shrink:0;"></div>
+            <span style="flex:1;font-size:13px;text-decoration:line-through;color:var(--text-3);">Clear inbox before noon</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;">
+            <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;"></div>
+            <span style="flex:1;font-size:13px;">Read 30 minutes</span>
+          </div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Nutrition today <a href="#">Diet app →</a></div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="mini-donut">
+            <div class="mini-donut-inner">
+              <div class="donut-cal">1,420</div>
+              <div class="donut-sub">/ 2,000</div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:2px;"><span>Protein</span><span>84/120g</span></div>
+              <div class="progress"><div class="progress-fill" style="width:70%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:2px;"><span>Carbs</span><span>142/250g</span></div>
+              <div class="progress progress-green"><div class="progress-fill" style="width:57%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:2px;"><span>Fat</span><span>48/70g</span></div>
+              <div class="progress"><div class="progress-fill" style="width:69%;background:var(--amber);"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:10px;font-size:12px;color:#0891B2;">
+          <span>💧 5/8 glasses</span>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Finances — April <a href="#">Financial →</a></div>
+        <div class="fin-row"><span class="fin-label">Income</span><span class="fin-val fin-pos">+$4,200</span></div>
+        <div class="fin-row"><span class="fin-label">Expenses</span><span class="fin-val fin-neg">-$2,143</span></div>
+        <div class="fin-row"><span class="fin-label">Saved</span><span class="fin-val">$2,057 (49%)</span></div>
+        <div class="fin-row" style="margin-top:4px;"><span class="fin-label">Entertainment</span><span class="fin-val fin-neg">Over budget $45</span></div>
+        <div class="progress" style="margin-top:8px;"><div class="progress-fill" style="width:51%;"></div></div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">51% of income spent · 18 days left</div>
+      </div>
+
+      <!-- Row 4: Goal + SPACE + Activity -->
+      <div class="widget">
+        <div class="widget-title">Goals <a href="#">Planner →</a></div>
+        <div class="goal-mini">
+          <div class="goal-mini-row"><span class="goal-mini-label">💼 Berlin decision</span><span>60%</span></div>
+          <div class="progress"><div class="progress-fill" style="width:60%;"></div></div>
+        </div>
+        <div class="goal-mini">
+          <div class="goal-mini-row"><span class="goal-mini-label">🏃 Half-marathon</span><span>35%</span></div>
+          <div class="progress progress-green"><div class="progress-fill" style="width:35%;"></div></div>
+        </div>
+        <div class="goal-mini">
+          <div class="goal-mini-row"><span class="goal-mini-label">📚 Read 24 books</span><span>29%</span></div>
+          <div class="progress"><div class="progress-fill" style="width:29%;background:var(--amber);"></div></div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">SPACE activity <a href="#">View SPACE →</a></div>
+        <div class="activity-mini">
+          <div class="am-item">
+            <div class="am-dot">📝</div>
+            <div>
+              <div class="am-text">Your post got 24 reactions</div>
+              <div class="am-time">Today 9:30 AM</div>
+            </div>
+          </div>
+          <div class="am-item">
+            <div class="am-dot">🤝</div>
+            <div>
+              <div class="am-text">Elena V. started following you</div>
+              <div class="am-time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="am-item">
+            <div class="am-dot">💬</div>
+            <div>
+              <div class="am-text">Miriam commented on your blog post</div>
+              <div class="am-time">3 hours ago</div>
+            </div>
+          </div>
+          <div class="am-item">
+            <div class="am-dot">📢</div>
+            <div>
+              <div class="am-text">Board thread got 12 replies</div>
+              <div class="am-time">4 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Subscriptions expiring <a href="#">Agreement →</a></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--red-bg);border-radius:var(--radius);font-size:12px;">
+            <span style="font-size:16px;">🏋️</span>
+            <div style="flex:1;"><div style="font-weight:500;color:var(--red);">FitLife Gym</div><div style="color:var(--red);font-size:11px;">Renews tomorrow!</div></div>
+            <span style="font-size:12px;font-weight:600;color:var(--red);">$45</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--amber-bg);border-radius:var(--radius);font-size:12px;">
+            <span style="font-size:16px;">☁️</span>
+            <div style="flex:1;"><div style="font-weight:500;">iCloud+</div><div style="color:var(--text-3);font-size:11px;">Renews in 6 days</div></div>
+            <span style="font-size:12px;">$2.99</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--surface-2);border-radius:var(--radius);font-size:12px;">
+            <span style="font-size:16px;">🎵</span>
+            <div style="flex:1;"><div style="font-weight:500;">Spotify</div><div style="color:var(--text-3);font-size:11px;">Renews in 4 days</div></div>
+            <span style="font-size:12px;">$10.99</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

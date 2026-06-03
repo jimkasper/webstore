@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feed — Alex Stoll — nTogether</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+/* ── Compose box ────────────────────────────────────────── */
+.compose-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.compose-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.compose-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #A16207;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.compose-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  resize: none;
+  min-height: 44px;
+  font-family: var(--font);
+  line-height: 1.5;
+}
+.compose-input:focus { border-color: var(--accent); }
+.compose-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.compose-action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+.compose-action:hover { background: var(--surface-2); color: var(--text); }
+.compose-post-btn {
+  margin-left: auto;
+  padding: 7px 18px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.compose-post-btn:hover { opacity: 0.9; }
+
+/* ── Feed filters ───────────────────────────────────────── */
+.feed-filters {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.feed-filter {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .15s;
+}
+.feed-filter:hover { color: var(--text); }
+.feed-filter.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Right sidebar ──────────────────────────────────────── */
+.who-to-follow { }
+.wtf-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.wtf-item:last-child { border-bottom: none; }
+.wtf-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.wtf-info { flex: 1; min-width: 0; }
+.wtf-name { font-size: 13px; font-weight: 600; }
+.wtf-handle { font-size: 11px; color: var(--text-3); }
+.wtf-mutual { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+.wtf-follow-btn {
+  padding: 5px 14px;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+.wtf-follow-btn:hover { background: var(--accent); color: var(--bg); }
+
+/* ── Trending ───────────────────────────────────────────── */
+.trend-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.trend-item:last-child { border-bottom: none; }
+.trend-item:hover .trend-tag { color: var(--text); }
+.trend-tag { font-size: 13px; font-weight: 600; color: var(--accent); }
+.trend-count { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="own-space-bar">
+  ✏️ This is your SPACE. <a href="../profile-editor.html" style="font-weight:600;text-decoration:underline;">Open BUILDSPACE</a> to edit it.
+  <span style="margin-left:auto;">Viewing as: <strong>Owner</strong> · <a style="font-weight:600;text-decoration:underline;">Preview as visitor</a></span>
+</div>
+
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl" href="profile.html">Wall</a>
+      <a class="snl active">Feed</a>
+      <a class="snl" href="about.html">About</a>
+      <a class="snl" href="media.html">Media</a>
+      <a class="snl" href="blog.html">Blog</a>
+      <a class="snl" href="friends.html">Friends</a>
+      <a class="snl" href="activity.html">Activity</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-outline btn-sm">⚙ Feed settings</div>
+    </div>
+  </div>
+</nav>
+
+<div class="space-cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+  <div class="space-cover-edit">📷 Edit cover</div>
+</div>
+<div class="space-header">
+  <div class="space-header-inner">
+    <div class="space-avatar-wrap">
+      <div class="space-avatar">A</div>
+    </div>
+    <div class="space-identity">
+      <div class="space-name">Alex Stoll</div>
+      <div class="space-handle">@alex · Berlin, Germany (soon)</div>
+      <div class="space-stats">
+        <div class="space-stat"><strong>842</strong> followers</div>
+        <div class="space-stat"><strong>214</strong> following</div>
+        <div class="space-stat"><strong>127</strong> posts</div>
+      </div>
+    </div>
+    <div class="space-actions">
+      <div class="btn btn-outline btn-sm">💬 Message</div>
+      <div class="btn btn-outline btn-sm">⋯</div>
+    </div>
+  </div>
+</div>
+
+<!-- Feed page -->
+<div class="space-page">
+
+  <!-- Main feed column -->
+  <div class="main-col">
+
+    <!-- Compose box (owner only) -->
+    <div class="compose-box">
+      <div class="compose-row">
+        <div class="compose-avatar">A</div>
+        <textarea class="compose-input" placeholder="What's on your mind, Alex?"></textarea>
+      </div>
+      <div class="compose-footer">
+        <button class="compose-action">🖼 Photo</button>
+        <button class="compose-action">🎵 Music</button>
+        <button class="compose-action">🎬 Video</button>
+        <button class="compose-action">📍 Place</button>
+        <button class="compose-action">🔗 Link</button>
+        <button class="compose-post-btn">Post</button>
+      </div>
+    </div>
+
+    <!-- Feed filters -->
+    <div class="feed-filters">
+      <div class="feed-filter active" onclick="setFilter(this)">Following</div>
+      <div class="feed-filter" onclick="setFilter(this)">Mutuals</div>
+      <div class="feed-filter" onclick="setFilter(this)">All</div>
+    </div>
+
+    <!-- Posts -->
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background:#4F46E5;">MJ</div>
+        <div class="post-meta">
+          <div class="post-author">Maya Johnson <span style="font-weight:400;color:var(--text-3);">@mayaj</span></div>
+          <div class="post-time">2 hours ago</div>
+        </div>
+        <div style="margin-left:auto;font-size:18px;color:var(--text-3);cursor:pointer;">⋯</div>
+      </div>
+      <div class="post-body">
+        Just wrapped the final mix on the new EP. Six months of work. Can't believe it's actually done. Dropping next Friday — stay tuned. 🎶
+      </div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 47</div>
+        <div class="post-action">💬 12</div>
+        <div class="post-action">🔁 8</div>
+        <div class="post-action">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background:#B45309;">KT</div>
+        <div class="post-meta">
+          <div class="post-author">Kai Thompson <span style="font-weight:400;color:var(--text-3);">@kait</span></div>
+          <div class="post-time">4 hours ago</div>
+        </div>
+        <div style="margin-left:auto;font-size:18px;color:var(--text-3);cursor:pointer;">⋯</div>
+      </div>
+      <div class="post-body">
+        Morning class was packed today — 24 people showed up for the 6am. Something shifts when that many people are in the room together at dawn. Energy was unreal.
+      </div>
+      <div class="post-image" style="background:linear-gradient(135deg,#1A1A1A,#374151);">🏋️</div>
+      <div class="post-actions">
+        <div class="post-action liked">❤️ 83</div>
+        <div class="post-action">💬 6</div>
+        <div class="post-action">🔁 11</div>
+        <div class="post-action">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background:#0D9488;">LP</div>
+        <div class="post-meta">
+          <div class="post-author">Lisa Park <span style="font-weight:400;color:var(--text-3);">@lisap</span></div>
+          <div class="post-time">Yesterday</div>
+        </div>
+        <div style="margin-left:auto;font-size:18px;color:var(--text-3);cursor:pointer;">⋯</div>
+      </div>
+      <div class="post-body">
+        New trigger preset just dropped on TRADING POST: "Studio Mode" — fires when you're stationary at a known creative space between 10pm and 2am with your next calendar slot free. Works great as a journal or focus prompt. Free to install. 🎛
+      </div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 31</div>
+        <div class="post-action">💬 9</div>
+        <div class="post-action">🔁 14</div>
+        <div class="post-action">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background:#7C3AED;">AC</div>
+        <div class="post-meta">
+          <div class="post-author">Alex Chen <span style="font-weight:400;color:var(--text-3);">@alexchen</span></div>
+          <div class="post-time">Yesterday</div>
+        </div>
+        <div style="margin-left:auto;font-size:18px;color:var(--text-3);cursor:pointer;">⋯</div>
+      </div>
+      <div class="post-body">
+        Hit my gym goal for the 4th week in a row. ACHIEVEMENTS is actually changing how I think about consistency — knowing my location data is the proof keeps me honest. 💪
+        <br><br>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;">
+          🏅 <strong>Gold streak unlocked — Gym 3×/week × 4 weeks</strong>
+        </span>
+      </div>
+      <div class="post-actions">
+        <div class="post-action liked">❤️ 104</div>
+        <div class="post-action">💬 18</div>
+        <div class="post-action">🔁 22</div>
+        <div class="post-action">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar" style="background:#BE185D;">DJ</div>
+        <div class="post-meta">
+          <div class="post-author">DJ Ramirez <span style="font-weight:400;color:var(--text-3);">@djramirez</span></div>
+          <div class="post-time">2 days ago</div>
+        </div>
+        <div style="margin-left:auto;font-size:18px;color:var(--text-3);cursor:pointer;">⋯</div>
+      </div>
+      <div class="post-body">
+        Neon Owl residency confirmed — every Friday and Saturday through July. Come through. 🦉
+      </div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 219</div>
+        <div class="post-action">💬 34</div>
+        <div class="post-action">🔁 67</div>
+        <div class="post-action">🔖</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="side-col">
+
+    <div class="card">
+      <div class="card-title">Who to follow</div>
+      <div class="who-to-follow">
+
+        <div class="wtf-item">
+          <div class="wtf-avatar" style="background:#1D4ED8;">JP</div>
+          <div class="wtf-info">
+            <div class="wtf-name">James Park</div>
+            <div class="wtf-handle">@jamespark</div>
+            <div class="wtf-mutual">8 mutuals</div>
+          </div>
+          <button class="wtf-follow-btn">Follow</button>
+        </div>
+
+        <div class="wtf-item">
+          <div class="wtf-avatar" style="background:#047857;">LT</div>
+          <div class="wtf-info">
+            <div class="wtf-name">Lena Torres</div>
+            <div class="wtf-handle">@lenat</div>
+            <div class="wtf-mutual">6 mutuals</div>
+          </div>
+          <button class="wtf-follow-btn">Follow</button>
+        </div>
+
+        <div class="wtf-item">
+          <div class="wtf-avatar" style="background:#9333EA;">RN</div>
+          <div class="wtf-info">
+            <div class="wtf-name">Raj Nair</div>
+            <div class="wtf-handle">@rajnair</div>
+            <div class="wtf-mutual">5 mutuals</div>
+          </div>
+          <button class="wtf-follow-btn">Follow</button>
+        </div>
+
+        <div class="wtf-item">
+          <div class="wtf-avatar" style="background:#B45309;">SB</div>
+          <div class="wtf-info">
+            <div class="wtf-name">Sofia Bergström</div>
+            <div class="wtf-handle">@sofiab</div>
+            <div class="wtf-mutual">4 mutuals</div>
+          </div>
+          <button class="wtf-follow-btn">Follow</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Trending</div>
+      <div class="trend-item">
+        <div class="trend-tag">#nTogether</div>
+        <div class="trend-count">1,240 posts</div>
+      </div>
+      <div class="trend-item">
+        <div class="trend-tag">#TriggerPresets</div>
+        <div class="trend-count">387 posts</div>
+      </div>
+      <div class="trend-item">
+        <div class="trend-tag">#AchievementUnlocked</div>
+        <div class="trend-count">294 posts</div>
+      </div>
+      <div class="trend-item">
+        <div class="trend-tag">#SXSW2026</div>
+        <div class="trend-count">2,180 posts</div>
+      </div>
+      <div class="trend-item">
+        <div class="trend-tag">#LocalAI</div>
+        <div class="trend-count">156 posts</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Feed settings</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.7;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span>Algorithm</span>
+          <span style="color:var(--text);">Chronological ▾</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span>Show reposts</span>
+          <span style="color:var(--green);">On</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Show replies</span>
+          <span style="color:var(--text-3);">Off</span>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <a href="../connect/algorithms.html" style="font-size:12px;color:var(--accent);">Browse feed algorithms in TRADING POST →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function setFilter(el) {
+  document.querySelectorAll('.feed-filter').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

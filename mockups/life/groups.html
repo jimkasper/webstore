@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GROUPS — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+/* ── Layout ─────────────────────────────────────────────── */
+.groups-shell { display: flex; height: 100vh; overflow: hidden; }
+.g-sidebar  { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.g-list     { width: 300px; background: var(--bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+.g-detail   { flex: 1; background: var(--surface); overflow-y: auto; }
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.g-sidebar-header { padding: 16px 16px 8px; }
+.g-search { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23A1A1AA' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 8px center no-repeat; outline: none; color: var(--text); }
+.g-search:focus { border-color: var(--accent); }
+
+.g-nav-section { padding: 8px 8px 4px; }
+.g-nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); padding: 0 8px; margin-bottom: 4px; }
+.g-nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-2); transition: background .12s, color .12s; }
+.g-nav-item:hover { background: var(--surface-2); color: var(--text); }
+.g-nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.g-nav-count { margin-left: auto; font-size: 11px; background: var(--surface-2); border-radius: 10px; padding: 1px 6px; color: var(--text-3); }
+.g-nav-count.amber { background: var(--amber-bg); color: var(--amber); font-weight: 600; }
+.g-nav-count.blue { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+
+.g-type-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.g-sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+.g-new-btn { width: 100%; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+.g-new-btn:hover { background: #2563EB; }
+
+/* ── Group type badges ──────────────────────────────────── */
+.type-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.type-mailing  { background: var(--accent-bg); color: var(--accent); }
+.type-event    { background: var(--green-bg); color: var(--green); }
+.type-crew     { background: var(--amber-bg); color: var(--amber); }
+.type-custom   { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+
+/* ── Group list panel ───────────────────────────────────── */
+.g-list-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.g-list-title { font-weight: 600; font-size: 14px; }
+.g-list-add { width: 28px; height: 28px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; line-height: 1; }
+
+.g-group-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
+.g-group-row:hover { background: var(--surface-2); }
+.g-group-row.selected { background: var(--accent-bg); }
+.g-group-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.g-group-name { font-size: 13px; font-weight: 600; }
+.g-group-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+
+/* ── Member list ────────────────────────────────────────── */
+.g-member-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--bg); }
+.g-member-title { font-weight: 600; font-size: 14px; }
+.g-member-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.g-member-toolbar { display: flex; gap: 6px; }
+.g-tool-btn { padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; }
+.g-tool-btn:hover { background: var(--surface-2); color: var(--text); }
+
+.g-add-bar { padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.g-add-input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); outline: none; }
+.g-add-input:focus { border-color: var(--accent); }
+
+.g-member-scroll { flex: 1; overflow-y: auto; }
+.g-member-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
+.g-member-row:hover { background: var(--surface-2); }
+.g-member-row.selected { background: var(--accent-bg); }
+.g-m-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; color: #fff; flex-shrink: 0; }
+.g-m-name { font-size: 13px; font-weight: 500; }
+.g-m-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+.badge-contact { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--accent); background: var(--accent-bg); padding: 1px 5px; border-radius: 4px; }
+.badge-pending { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--amber); background: var(--amber-bg); padding: 1px 5px; border-radius: 4px; }
+.role-badge { font-size: 10px; color: var(--text-3); background: var(--surface-2); border-radius: 4px; padding: 1px 5px; border: 1px solid var(--border); }
+.role-admin { color: var(--amber); background: var(--amber-bg); border-color: transparent; }
+.g-m-check { margin-left: auto; width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; }
+
+/* ── Detail / Resolution panel ──────────────────────────── */
+.g-detail-inner { padding: 28px 32px 48px; }
+.g-detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 8px; color: var(--text-3); font-size: 14px; }
+
+/* Member detail */
+.g-mem-top { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+.g-mem-avatar-lg { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; color: #fff; flex-shrink: 0; }
+.g-mem-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.g-mem-handle { font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+.g-mem-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.g-act-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.g-act-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.g-act-btn.red { background: var(--red-bg); color: var(--red); border-color: transparent; }
+
+.g-field-group { margin-bottom: 18px; }
+.g-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 8px; }
+.g-field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 13px; }
+.g-field-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+.g-field-val { color: var(--text); }
+.g-note-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.g-divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* Resolution panel */
+.res-header { margin-bottom: 20px; }
+.res-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.res-sub { font-size: 13px; color: var(--text-2); }
+
+.res-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+.res-badge.high { background: var(--green-bg); color: var(--green); }
+.res-badge.medium { background: var(--amber-bg); color: var(--amber); }
+.res-badge.none { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
+
+.res-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.res-side { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.res-side-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 10px; }
+.res-field { margin-bottom: 6px; }
+.res-key { font-size: 11px; color: var(--text-3); }
+.res-val { font-size: 13px; color: var(--text); font-weight: 500; margin-top: 1px; }
+.res-match-indicator { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.res-dots { display: flex; gap: 3px; }
+.res-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.res-dot.filled { background: var(--amber); }
+.res-dot.filled.high { background: var(--green); }
+.res-pct { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.res-primary-actions { display: flex; gap: 10px; margin-bottom: 12px; }
+.res-btn { flex: 1; padding: 10px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .12s; }
+.res-btn.confirm { background: var(--accent); color: #fff; }
+.res-btn.confirm:hover { background: #2563EB; }
+.res-btn.reject { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.res-btn.reject:hover { background: var(--border); }
+
+.res-secondary-actions { display: flex; flex-direction: column; gap: 6px; }
+.res-sec-btn { padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-2); cursor: pointer; text-align: left; }
+.res-sec-btn:hover { background: var(--surface-2); color: var(--text); }
+
+/* Role input in member detail */
+.g-role-select { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--text); outline: none; }
+
+/* Form field chips */
+.g-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.g-chip { padding: 3px 10px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-3); background: var(--surface-2); }
+</style>
+</head>
+<body>
+
+<div class="groups-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <div class="g-sidebar">
+    <div class="g-sidebar-header">
+      <input class="g-search" placeholder="Search groups…">
+    </div>
+
+    <div class="g-nav-section">
+      <div class="g-nav-label">Views</div>
+      <div class="g-nav-item active" onclick="selectNav(this)">
+        <span>🗂</span> All Groups
+        <span class="g-nav-count">8</span>
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span>📥</span> Inbox
+        <span class="g-nav-count blue">3</span>
+      </div>
+    </div>
+
+    <div class="g-nav-section">
+      <div class="g-nav-label">Type</div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span class="g-type-dot" style="background:var(--accent);"></span> Mailing Lists
+        <span class="g-nav-count">3</span>
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span class="g-type-dot" style="background:var(--green);"></span> Event Rosters
+        <span class="g-nav-count">2</span>
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span class="g-type-dot" style="background:var(--amber);"></span> Crews / Teams
+        <span class="g-nav-count">2</span>
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span class="g-type-dot" style="background:var(--text-3);"></span> Custom
+        <span class="g-nav-count">1</span>
+      </div>
+    </div>
+
+    <div class="g-nav-section">
+      <div class="g-nav-label">Recent</div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span>🎵</span> Music Industry
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span>🎉</span> SXSW 2026 Guest List
+      </div>
+      <div class="g-nav-item" onclick="selectNav(this)">
+        <span>📰</span> Monthly Newsletter
+      </div>
+    </div>
+
+    <div class="g-sidebar-footer">
+      <button class="g-new-btn">+ New Group</button>
+    </div>
+  </div>
+
+  <!-- ── Group list ────────────────────────────────────────── -->
+  <div class="g-list" style="display:flex;flex-direction:column;">
+    <div class="g-member-header">
+      <div>
+        <div class="g-member-title">All Groups</div>
+        <div class="g-member-sub">8 groups · 214 members</div>
+      </div>
+      <div class="g-member-toolbar">
+        <div class="g-tool-btn">Sort</div>
+        <div class="g-list-add" onclick="showDetail('new-group')">+</div>
+      </div>
+    </div>
+    <div class="g-member-scroll">
+
+      <div class="g-group-row selected" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--accent-bg);">🎵</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">Music Industry</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-mailing">Mailing List</span>
+            <span>42 members</span>
+          </div>
+        </div>
+        <div class="g-nav-count blue">3</div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--green-bg);">🎉</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">SXSW 2026 Guest List</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-event">Event Roster</span>
+            <span>78 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--amber-bg);">🎸</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">The Relic Band</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-crew">Crew / Team</span>
+            <span>6 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--accent-bg);">📰</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">Monthly Newsletter</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-mailing">Mailing List</span>
+            <span>38 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--surface-2);">🎤</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">Collab Roster 2026</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-custom">Custom</span>
+            <span>24 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--amber-bg);">🎬</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">Video Production Crew</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-crew">Crew / Team</span>
+            <span>8 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--green-bg);">🌟</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">EP Release Party</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-event">Event Roster</span>
+            <span>112 members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-group-row" onclick="showGroupMembers()">
+        <div class="g-group-icon" style="background:var(--accent-bg);">📡</div>
+        <div style="flex:1;min-width:0;">
+          <div class="g-group-name">Press & Media List</div>
+          <div class="g-group-meta">
+            <span class="type-badge type-mailing">Mailing List</span>
+            <span>16 members</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Detail area: members + detail / resolution ────────── -->
+  <div class="g-detail" id="g-detail">
+
+    <!-- MEMBERS view (Music Industry group) -->
+    <div id="view-members" style="display:flex;height:100%;overflow:hidden;">
+
+      <!-- Member list column -->
+      <div style="width:260px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;">
+        <div class="g-member-header">
+          <div>
+            <div class="g-member-title">Music Industry</div>
+            <div class="g-member-sub">42 members · 3 pending</div>
+          </div>
+          <div class="g-member-toolbar">
+            <div class="g-tool-btn">📤 Export</div>
+          </div>
+        </div>
+
+        <!-- Add member bar -->
+        <div class="g-add-bar">
+          <input class="g-add-input" placeholder="+ Add member — search contacts…">
+        </div>
+
+        <!-- Tabs: Members / Pending -->
+        <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <div id="tab-members" style="flex:1;text-align:center;padding:8px;font-size:12px;font-weight:600;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;" onclick="switchMemberTab('members')">Members (42)</div>
+          <div id="tab-pending" style="flex:1;text-align:center;padding:8px;font-size:12px;font-weight:600;color:var(--text-3);border-bottom:2px solid transparent;cursor:pointer;" onclick="switchMemberTab('pending')">Pending (3)</div>
+        </div>
+
+        <!-- Member rows -->
+        <div id="members-list" class="g-member-scroll">
+
+          <div class="g-member-row selected" onclick="showMemberDetail('alex')">
+            <div class="g-m-avatar" style="background:#4F46E5;">AC</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Alex Chen</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge role-admin">Admin</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('maya')">
+            <div class="g-m-avatar" style="background:#0D9488;">MJ</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Maya Johnson</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('dj')">
+            <div class="g-m-avatar" style="background:#B45309;">DJ</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">DJ Ramirez</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('sarah')">
+            <div class="g-m-avatar" style="background:#BE185D;">SW</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Sarah Williams</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('kai')">
+            <div class="g-m-avatar" style="background:#047857;">KT</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Kai Thompson</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('lisa')">
+            <div class="g-m-avatar" style="background:#9333EA;">LP</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Lisa Park</div>
+              <div class="g-m-sub">
+                <span class="badge-contact">● Contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showMemberDetail('nomatch')">
+            <div class="g-m-avatar" style="background:var(--surface-2);color:var(--text-3);">?</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">T. Nakamura</div>
+              <div class="g-m-sub">
+                <span class="badge-pending">⏳ No contact</span>
+                <span class="role-badge">Member</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Pending rows (hidden) -->
+        <div id="pending-list" class="g-member-scroll" style="display:none;">
+
+          <div class="g-member-row selected" onclick="showResolution('medium')">
+            <div class="g-m-avatar" style="background:var(--amber-bg);color:var(--amber);font-size:14px;">?</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Jordan Rivera</div>
+              <div class="g-m-sub">
+                <span class="badge-pending">⏳ Pending review</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showResolution('high')">
+            <div class="g-m-avatar" style="background:var(--green-bg);color:var(--green);font-size:14px;">✓</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Marcus Webb</div>
+              <div class="g-m-sub">
+                <span style="font-size:10px;color:var(--green);font-weight:600;">● High match</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-member-row" onclick="showResolution('none')">
+            <div class="g-m-avatar" style="background:var(--surface-2);color:var(--text-3);">?</div>
+            <div style="flex:1;min-width:0;">
+              <div class="g-m-name">Priya Desai</div>
+              <div class="g-m-sub">
+                <span style="font-size:10px;color:var(--text-3);">No match found</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right: detail panel -->
+      <div style="flex:1;overflow-y:auto;" id="detail-pane">
+
+        <!-- Member detail: Alex Chen -->
+        <div id="detail-alex" class="g-detail-inner">
+          <div class="g-mem-top">
+            <div class="g-mem-avatar-lg" style="background:#4F46E5;">AC</div>
+            <div>
+              <div class="g-mem-name">Alex Chen</div>
+              <div class="g-mem-handle">@alexchen</div>
+              <div class="g-mem-actions">
+                <div class="g-act-btn primary">💬 Message</div>
+                <div class="g-act-btn">🏠 SPACE</div>
+                <div class="g-act-btn">👤 View Contact</div>
+                <div class="g-act-btn red">Remove</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-divider"></div>
+
+          <div class="g-field-group">
+            <div class="g-field-label">Group Role</div>
+            <div class="g-field-row">
+              <span class="g-field-icon">🎖</span>
+              <select class="g-role-select">
+                <option selected>Admin</option>
+                <option>Member</option>
+                <option>Guest</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="g-field-group">
+            <div class="g-field-label">Contact info</div>
+            <div class="g-field-row"><span class="g-field-icon">✉️</span><span class="g-field-val">alex@example.com</span></div>
+            <div class="g-field-row"><span class="g-field-icon">📱</span><span class="g-field-val">+1 415 555 0192</span></div>
+            <div class="g-field-row"><span class="g-field-icon">🎵</span><span class="g-field-val">Musician & Producer — San Francisco</span></div>
+          </div>
+
+          <div class="g-field-group">
+            <div class="g-field-label">Form submission</div>
+            <div class="g-field-row"><span class="g-field-icon">📅</span><span class="g-field-val" style="color:var(--text-3);">Joined Apr 12, 2026 via SPACE form</span></div>
+            <div class="g-field-row"><span class="g-field-icon">🏷</span>
+              <div class="g-chip-row">
+                <span class="g-chip">Producer</span>
+                <span class="g-chip">Original artist</span>
+                <span class="g-chip">Collaborations open</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g-field-group">
+            <div class="g-field-label">Group note</div>
+            <div class="g-note-box">Met at SXSW 2025 — great connection. Producing for two major label artists.</div>
+          </div>
+
+          <div class="g-field-group">
+            <div class="g-field-label">Other groups</div>
+            <div class="g-chip-row">
+              <span class="g-chip" style="color:var(--accent);background:var(--accent-bg);">SXSW 2026 Guest List</span>
+              <span class="g-chip" style="color:var(--amber);background:var(--amber-bg);">The Relic Band</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resolution panel: medium confidence -->
+        <div id="detail-resolution-medium" class="g-detail-inner" style="display:none;">
+          <div class="res-header">
+            <div class="res-title">Review Submission</div>
+            <div class="res-sub">Someone submitted via your Music Industry SPACE form. Does this match an existing contact?</div>
+          </div>
+
+          <div class="res-badge medium">●●●○○ Possible match found — 68% confidence</div>
+
+          <div class="res-compare">
+            <div class="res-side">
+              <div class="res-side-label">Submitted</div>
+              <div class="res-field">
+                <div class="res-key">Name</div>
+                <div class="res-val">Jordan Rivera</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Email</div>
+                <div class="res-val">j.rivera.music@gmail.com</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Phone</div>
+                <div class="res-val">(not provided)</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Role</div>
+                <div class="res-val">DJ · Rapper</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Instagram</div>
+                <div class="res-val">@jordy_rvr</div>
+              </div>
+            </div>
+            <div class="res-side">
+              <div class="res-side-label">Possible match</div>
+              <div class="res-field">
+                <div class="res-key">Name</div>
+                <div class="res-val">Jordan R.</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Email</div>
+                <div class="res-val" style="color:var(--text-3);">(none on file)</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Phone</div>
+                <div class="res-val" style="color:var(--text-3);">(none on file)</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Profession</div>
+                <div class="res-val">DJ</div>
+              </div>
+              <div class="res-field">
+                <div class="res-key">Source</div>
+                <div class="res-val">Manual · Added Feb 2026</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="res-match-indicator">
+            <div class="res-dots">
+              <div class="res-dot filled"></div>
+              <div class="res-dot filled"></div>
+              <div class="res-dot filled"></div>
+              <div class="res-dot"></div>
+              <div class="res-dot"></div>
+            </div>
+            <span class="res-pct">68% — name similarity only (no email/phone overlap)</span>
+          </div>
+
+          <div class="res-primary-actions">
+            <button class="res-btn confirm">Link to Jordan R.</button>
+            <button class="res-btn reject">Not this person</button>
+          </div>
+          <div class="res-secondary-actions">
+            <button class="res-sec-btn">+ Create new contact from submission</button>
+            <button class="res-sec-btn">Add to group only (no contact record)</button>
+            <button class="res-sec-btn" style="color:var(--text-3);">Skip — review later</button>
+          </div>
+        </div>
+
+        <!-- Resolution panel: high confidence -->
+        <div id="detail-resolution-high" class="g-detail-inner" style="display:none;">
+          <div class="res-header">
+            <div class="res-title">Review Submission</div>
+            <div class="res-sub">Someone submitted via your Music Industry SPACE form. Does this match an existing contact?</div>
+          </div>
+
+          <div class="res-badge high">●●●●● High confidence match — exact email</div>
+
+          <div class="res-compare">
+            <div class="res-side">
+              <div class="res-side-label">Submitted</div>
+              <div class="res-field"><div class="res-key">Name</div><div class="res-val">Marcus Webb</div></div>
+              <div class="res-field"><div class="res-key">Email</div><div class="res-val">marcus@webbproductions.co</div></div>
+              <div class="res-field"><div class="res-key">Phone</div><div class="res-val">+1 323 555 0187</div></div>
+              <div class="res-field"><div class="res-key">Role</div><div class="res-val">Producer · Sound Engineer</div></div>
+            </div>
+            <div class="res-side" style="border-color:var(--green);">
+              <div class="res-side-label" style="color:var(--green);">Match — exact email</div>
+              <div class="res-field"><div class="res-key">Name</div><div class="res-val">Marcus Webb</div></div>
+              <div class="res-field"><div class="res-key">Email</div><div class="res-val" style="color:var(--green);font-weight:700;">marcus@webbproductions.co ✓</div></div>
+              <div class="res-field"><div class="res-key">Phone</div><div class="res-val">+1 323 555 0187 ✓</div></div>
+              <div class="res-field"><div class="res-key">Source</div><div class="res-val">Manual · Added Jan 2026</div></div>
+            </div>
+          </div>
+
+          <div class="res-match-indicator">
+            <div class="res-dots">
+              <div class="res-dot filled high"></div>
+              <div class="res-dot filled high"></div>
+              <div class="res-dot filled high"></div>
+              <div class="res-dot filled high"></div>
+              <div class="res-dot filled high"></div>
+            </div>
+            <span class="res-pct" style="color:var(--green);">Exact email match — high confidence</span>
+          </div>
+
+          <div class="res-primary-actions">
+            <button class="res-btn confirm">Link to Marcus Webb</button>
+            <button class="res-btn reject">Not this person</button>
+          </div>
+          <div class="res-secondary-actions">
+            <button class="res-sec-btn">+ Create separate contact from submission</button>
+            <button class="res-sec-btn" style="color:var(--text-3);">Skip — review later</button>
+          </div>
+        </div>
+
+        <!-- Resolution panel: no match -->
+        <div id="detail-resolution-none" class="g-detail-inner" style="display:none;">
+          <div class="res-header">
+            <div class="res-title">Review Submission</div>
+            <div class="res-sub">Someone submitted via your Music Industry SPACE form. No existing contact matches.</div>
+          </div>
+
+          <div class="res-badge none">○○○○○ No match found</div>
+
+          <div class="res-side" style="margin-bottom:20px;">
+            <div class="res-side-label">Submitted data</div>
+            <div class="res-field"><div class="res-key">Name</div><div class="res-val">Priya Desai</div></div>
+            <div class="res-field"><div class="res-key">Email</div><div class="res-val">priya.d.music@proton.me</div></div>
+            <div class="res-field"><div class="res-key">Phone</div><div class="res-val">+44 7700 900234</div></div>
+            <div class="res-field"><div class="res-key">Role</div><div class="res-val">Manager · A&amp;R</div></div>
+            <div class="res-field"><div class="res-key">Company</div><div class="res-val">Resonance Records, London</div></div>
+          </div>
+
+          <div class="res-secondary-actions">
+            <button class="res-btn confirm" style="margin-bottom:10px;display:block;width:100%;padding:10px;text-align:center;">+ Create new contact from submission</button>
+            <button class="res-sec-btn">Add to group only (no contact record)</button>
+            <button class="res-sec-btn" style="color:var(--text-3);">Skip — review later</button>
+            <button class="res-sec-btn" style="color:var(--red);">Discard submission</button>
+          </div>
+        </div>
+
+        <!-- Default empty state -->
+        <div id="detail-empty" class="g-detail-empty" style="display:none;">
+          <div style="font-size:32px;">👤</div>
+          <div style="font-weight:600;color:var(--text-2);">Select a member</div>
+          <div style="font-size:12px;">Click any member to view details</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Default landing -->
+    <div id="view-default" class="g-detail-empty" style="display:none;">
+      <div style="font-size:40px;">🗂</div>
+      <div style="font-weight:600;color:var(--text-2);">Select a group</div>
+      <div style="font-size:12px;">Click a group to manage its members</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function selectNav(el) {
+  document.querySelectorAll('.g-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+function showGroupMembers() {
+  document.getElementById('view-members').style.display = 'flex';
+  document.getElementById('view-default').style.display = 'none';
+  document.querySelectorAll('.g-group-row').forEach(r => r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+function showMemberDetail(id) {
+  document.querySelectorAll('[id^="detail-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('detail-empty').style.display = 'none';
+  const el = document.getElementById('detail-' + id);
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('.g-member-row').forEach(r => r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+function showResolution(type) {
+  document.querySelectorAll('[id^="detail-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('detail-empty').style.display = 'none';
+  const el = document.getElementById('detail-resolution-' + type);
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('.g-member-row').forEach(r => r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+function switchMemberTab(tab) {
+  document.getElementById('members-list').style.display = tab === 'members' ? 'flex' : 'none';
+  document.getElementById('members-list').style.flexDirection = 'column';
+  document.getElementById('pending-list').style.display = tab === 'pending' ? 'flex' : 'none';
+  document.getElementById('pending-list').style.flexDirection = 'column';
+  document.getElementById('tab-members').style.color = tab === 'members' ? 'var(--accent)' : 'var(--text-3)';
+  document.getElementById('tab-members').style.borderBottomColor = tab === 'members' ? 'var(--accent)' : 'transparent';
+  document.getElementById('tab-pending').style.color = tab === 'pending' ? 'var(--accent)' : 'var(--text-3)';
+  document.getElementById('tab-pending').style.borderBottomColor = tab === 'pending' ? 'var(--accent)' : 'transparent';
+  if (tab === 'pending') {
+    showResolution('medium');
+    document.querySelector('#pending-list .g-member-row').classList.add('selected');
+  }
+}
+</script>
+</body>
+</html>

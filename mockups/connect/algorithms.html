@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithm Marketplace — CONNECT — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.algo-shell { display:flex; height:100vh; overflow:hidden; }
+.cn-sidebar  { width:200px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+.cn-logo { padding:14px 14px 8px; font-size:16px; font-weight:800; color:var(--accent); }
+.cn-nav-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-3); padding:8px 14px 4px; }
+.cn-nav-item { display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; color:var(--text-2); transition:background .1s; }
+.cn-nav-item:hover  { background:var(--surface-2); color:var(--text); }
+.cn-nav-item.active { background:var(--accent-bg); color:var(--accent); font-weight:600; }
+
+.algo-main   { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.algo-detail { width:340px; background:var(--surface); border-left:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.al-topbar { height:52px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:8px; flex-shrink:0; }
+.al-title { font-weight:700; font-size:16px; }
+.al-search { flex:1; max-width:280px; padding:7px 10px 7px 30px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23A09890' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 8px center no-repeat; outline:none; color:var(--text); }
+.al-topbar-right { margin-left:auto; }
+.al-publish-btn { padding:6px 14px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; }
+
+/* ── Filters ─────────────────────────────────────────────── */
+.al-filters { padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+.filter-pill { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); color:var(--text-2); background:var(--surface); transition:background .12s; white-space:nowrap; }
+.filter-pill:hover  { background:var(--surface-2); }
+.filter-pill.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* ── Content ─────────────────────────────────────────────── */
+.al-content { flex:1; overflow-y:auto; padding:16px; }
+.al-section-title { font-size:13px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+
+/* Active algorithms strip */
+.active-strip { background:var(--accent-bg); border:1px solid #BFDBFE; border-radius:var(--radius); padding:12px 14px; margin-bottom:24px; }
+.active-strip-title { font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.active-list { display:flex; flex-direction:column; gap:6px; }
+.active-row { display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:var(--radius-sm); padding:8px 10px; }
+.active-icon { font-size:20px; width:36px; text-align:center; flex-shrink:0; }
+.active-info { flex:1; min-width:0; }
+.active-name { font-size:13px; font-weight:600; }
+.active-type { font-size:11px; color:var(--text-2); }
+.active-badge { font-size:10px; font-weight:700; padding:2px 6px; background:var(--green-bg); color:var(--green); border-radius:4px; flex-shrink:0; }
+.active-remove { font-size:12px; color:var(--text-3); cursor:pointer; padding:4px 8px; border-radius:4px; }
+.active-remove:hover { background:var(--surface-2); color:var(--red); }
+
+/* Algorithm cards */
+.algo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; margin-bottom:24px; }
+.algo-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; cursor:pointer; transition:box-shadow .15s; }
+.algo-card:hover { box-shadow:var(--shadow); }
+.algo-card.selected { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg); }
+.ac-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.ac-icon { font-size:28px; width:44px; height:44px; border-radius:var(--radius); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ac-title-row { flex:1; min-width:0; }
+.ac-name { font-size:14px; font-weight:700; }
+.ac-author { font-size:12px; color:var(--accent); }
+.ac-desc { font-size:12px; color:var(--text-2); line-height:1.6; margin-bottom:10px; }
+.ac-footer { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ac-type-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; }
+.badge-feed  { background:#EFF6FF; color:#1D4ED8; }
+.badge-music { background:#F0FDF4; color:#15803D; }
+.badge-video { background:#FEF2F2; color:#DC2626; }
+.badge-disc  { background:#FDF4FF; color:#7C3AED; }
+.ac-stars { font-size:11px; color:var(--amber); }
+.ac-installs { font-size:11px; color:var(--text-3); }
+.ac-price { margin-left:auto; font-size:13px; font-weight:700; }
+.ac-price.free { color:var(--green); }
+.ac-installed { margin-left:auto; font-size:10px; font-weight:700; background:var(--green-bg); color:var(--green); padding:3px 8px; border-radius:4px; }
+
+/* ── Detail panel ─────────────────────────────────────────── */
+.detail-header { padding:16px; border-bottom:1px solid var(--border); }
+.dh-icon { font-size:40px; margin-bottom:10px; }
+.dh-name { font-size:18px; font-weight:700; }
+.dh-author { font-size:13px; color:var(--accent); margin-bottom:8px; }
+.dh-meta { display:flex; gap:8px; flex-wrap:wrap; }
+
+.detail-section { padding:14px 16px; border-bottom:1px solid var(--border); }
+.ds-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-3); margin-bottom:8px; }
+.ds-body  { font-size:13px; color:var(--text-2); line-height:1.7; }
+
+.sandbox-row { display:flex; align-items:center; gap:8px; font-size:13px; }
+.sandbox-ok  { color:var(--green); font-weight:600; }
+
+.review-row { border-bottom:1px solid var(--border); padding:10px 0; }
+.review-row:last-child { border-bottom:none; }
+.rev-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.rev-avatar { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+.rev-name  { font-size:12px; font-weight:600; }
+.rev-stars { font-size:11px; color:var(--amber); margin-left:auto; }
+.rev-body  { font-size:12px; color:var(--text-2); line-height:1.5; }
+
+.detail-actions { padding:14px 16px; display:flex; flex-direction:column; gap:8px; }
+.d-install-btn { padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; text-align:center; }
+.d-install-btn:hover { background:#1d4ed8; }
+.d-price-note { font-size:12px; color:var(--text-3); text-align:center; }
+</style>
+</head>
+<body>
+<div class="app-shell algo-shell">
+
+  <nav class="rail">
+    <div class="rail-logo">N</div>
+    <div class="rail-icon">⊞</div>
+    <div class="rail-icon">🏠</div>
+    <div class="rail-icon">🌿</div>
+    <div class="rail-icon active">🔗</div>
+    <div class="rail-icon">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon">⚙</div>
+  </nav>
+
+  <div class="cn-sidebar">
+    <div class="cn-logo">CONNECT</div>
+    <div class="cn-nav-label">Discover</div>
+    <div class="cn-nav-item">🏠 Social Feed</div>
+    <div class="cn-nav-item">🎵 Music</div>
+    <div class="cn-nav-item">🎬 Video</div>
+    <div class="cn-nav-item">🎙 Podcasts</div>
+    <div class="cn-nav-item">🔍 Search</div>
+    <div class="cn-nav-label">Marketplace</div>
+    <div class="cn-nav-item active">⚡ Algorithms</div>
+    <div class="cn-nav-item">📊 Data Market</div>
+    <div class="cn-nav-label">My library</div>
+    <div class="cn-nav-item">❤ Liked</div>
+    <div class="cn-nav-item">🔖 Bookmarks</div>
+  </div>
+
+  <div class="algo-main">
+    <div class="al-topbar">
+      <div class="al-title">Algorithm Marketplace</div>
+      <input class="al-search" type="text" placeholder="Search algorithms…">
+      <div class="al-topbar-right">
+        <button class="al-publish-btn">+ Publish algorithm</button>
+      </div>
+    </div>
+
+    <div class="al-filters">
+      <div class="filter-pill active" onclick="setFilter(this)">All</div>
+      <div class="filter-pill" onclick="setFilter(this)">Feed</div>
+      <div class="filter-pill" onclick="setFilter(this)">Music</div>
+      <div class="filter-pill" onclick="setFilter(this)">Video</div>
+      <div class="filter-pill" onclick="setFilter(this)">Discovery</div>
+      <div class="filter-pill" onclick="setFilter(this)">Free</div>
+      <div class="filter-pill" onclick="setFilter(this)">Top rated</div>
+      <div class="filter-pill" onclick="setFilter(this)">New</div>
+    </div>
+
+    <div class="al-content">
+
+      <!-- Active algorithms -->
+      <div class="active-strip">
+        <div class="active-strip-title">⚡ Your active algorithms</div>
+        <div class="active-list">
+          <div class="active-row">
+            <div class="active-icon">📰</div>
+            <div class="active-info">
+              <div class="active-name">ChronologicalPlus</div>
+              <div class="active-type">Social Feed · by @devtools</div>
+            </div>
+            <div class="active-badge">Active</div>
+            <div class="active-remove">Remove</div>
+          </div>
+          <div class="active-row">
+            <div class="active-icon">🎵</div>
+            <div class="active-info">
+              <div class="active-name">TasteGraph Music</div>
+              <div class="active-type">Music Feed · by @melodymind</div>
+            </div>
+            <div class="active-badge">Active</div>
+            <div class="active-remove">Remove</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browse -->
+      <div class="al-section-title">Browse all algorithms</div>
+      <div class="algo-grid">
+
+        <div class="algo-card selected" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#EFF6FF;">📰</div>
+            <div class="ac-title-row">
+              <div class="ac-name">ChronologicalPlus</div>
+              <div class="ac-author">@devtools</div>
+            </div>
+          </div>
+          <div class="ac-desc">Pure reverse-chronological feed with one tweak: boosted weight for posts from accounts you interact with most. No engagement bait, no sponsored content ranking.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-feed">Feed</span>
+            <span class="ac-stars">★★★★★</span>
+            <span class="ac-installs">32.1k installs</span>
+            <span class="ac-installed">Installed</span>
+          </div>
+        </div>
+
+        <div class="algo-card" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#F0FDF4;">🎵</div>
+            <div class="ac-title-row">
+              <div class="ac-name">TasteGraph Music</div>
+              <div class="ac-author">@melodymind</div>
+            </div>
+          </div>
+          <div class="ac-desc">Builds a personal taste graph from your listening history and surfaces music with similar sonic qualities — not just what's popular this week.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-music">Music</span>
+            <span class="ac-stars">★★★★☆</span>
+            <span class="ac-installs">18.4k installs</span>
+            <span class="ac-installed">Installed</span>
+          </div>
+        </div>
+
+        <div class="algo-card" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#FEF2F2;">🎬</div>
+            <div class="ac-title-row">
+              <div class="ac-name">DeepWatch Video</div>
+              <div class="ac-author">@viralabs</div>
+            </div>
+          </div>
+          <div class="ac-desc">Ranks video by completion rate, rewatch rate, and personal history rather than raw view count. Rewards quality over virality.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-video">Video</span>
+            <span class="ac-stars">★★★★☆</span>
+            <span class="ac-installs">9.7k installs</span>
+            <span class="ac-price">50 coins</span>
+          </div>
+        </div>
+
+        <div class="algo-card" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#FDF4FF;">🔭</div>
+            <div class="ac-title-row">
+              <div class="ac-name">LocalFirst Discovery</div>
+              <div class="ac-author">@nearbydev</div>
+            </div>
+          </div>
+          <div class="ac-desc">Surfaces content, creators, and SPACEs with geographic proximity weighting. Great for discovering local music scenes, events, and communities.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-disc">Discovery</span>
+            <span class="ac-stars">★★★☆☆</span>
+            <span class="ac-installs">4.2k installs</span>
+            <span class="ac-price free">Free</span>
+          </div>
+        </div>
+
+        <div class="algo-card" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#EFF6FF;">🤝</div>
+            <div class="ac-title-row">
+              <div class="ac-name">MutualAmplify</div>
+              <div class="ac-author">@socialtools</div>
+            </div>
+          </div>
+          <div class="ac-desc">Prioritizes posts from mutual connections — people you follow who also follow you back. Reduces noise from one-directional follows.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-feed">Feed</span>
+            <span class="ac-stars">★★★★☆</span>
+            <span class="ac-installs">14.9k installs</span>
+            <span class="ac-price free">Free</span>
+          </div>
+        </div>
+
+        <div class="algo-card" onclick="selectAlgo(this)">
+          <div class="ac-header">
+            <div class="ac-icon" style="background:#FFFBEB;">📈</div>
+            <div class="ac-title-row">
+              <div class="ac-name">TrendRadar</div>
+              <div class="ac-author">@trendlabs</div>
+            </div>
+          </div>
+          <div class="ac-desc">Surfaces rising content before it peaks — identifies velocity patterns in reactions and shares to show you what's about to trend in your network.</div>
+          <div class="ac-footer">
+            <span class="ac-type-badge badge-feed">Feed</span>
+            <span class="ac-stars">★★★★★</span>
+            <span class="ac-installs">21.3k installs</span>
+            <span class="ac-price">100 coins</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="algo-detail">
+    <div class="detail-header">
+      <div class="dh-icon">📰</div>
+      <div class="dh-name">ChronologicalPlus</div>
+      <div class="dh-author">by @devtools · @devtools.ntogether.com</div>
+      <div class="dh-meta">
+        <span class="ac-type-badge badge-feed" style="font-size:11px;">Feed</span>
+        <span style="font-size:12px;color:var(--amber);">★★★★★</span>
+        <span style="font-size:12px;color:var(--text-3);">4.9 · 847 reviews</span>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="ds-title">Description</div>
+      <div class="ds-body">Pure reverse-chronological feed with one boost: posts from accounts you interact with most (reacted to, commented on, or replied to in the past 30 days) get a mild recency boost so they surface slightly higher, without any algorithmic content injection or engagement bait ranking.<br><br>No promoted posts. No "you might like" injection. No black-box ML.</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="ds-title">Technical details</div>
+      <div class="ds-body">
+        <div class="sandbox-row"><span>Sandbox status:</span><span class="sandbox-ok">✓ Verified safe</span></div>
+        <div style="height:6px;"></div>
+        <div class="sandbox-row"><span>Runs:</span><span style="color:var(--text-2);">Client-side (your device)</span></div>
+        <div style="height:6px;"></div>
+        <div class="sandbox-row"><span>Data access:</span><span style="color:var(--text-2);">Read-only · post feed index</span></div>
+        <div style="height:6px;"></div>
+        <div class="sandbox-row"><span>Version:</span><span style="color:var(--text-2);">2.1.4 · Updated Apr 20, 2026</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="ds-title">Revenue split</div>
+      <div class="ds-body">Free algorithm. Author earns 80% of any future paid version. Platform takes 20%.</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="ds-title">Reviews</div>
+      <div class="review-row">
+        <div class="rev-header">
+          <div class="rev-avatar" style="background:#DBEAFE;color:#1D4ED8;">AC</div>
+          <div class="rev-name">@alexchen</div>
+          <div class="rev-stars">★★★★★</div>
+        </div>
+        <div class="rev-body">Finally a feed that shows me what I actually want to see. No more mystery engagement spikes.</div>
+      </div>
+      <div class="review-row">
+        <div class="rev-header">
+          <div class="rev-avatar" style="background:#F5F3FF;color:#6D28D9;">BM</div>
+          <div class="rev-name">@brendanm</div>
+          <div class="rev-stars">★★★★★</div>
+        </div>
+        <div class="rev-body">Simple does it. I switched from 3 different feed algorithms back to this.</div>
+      </div>
+    </div>
+
+    <div class="detail-actions">
+      <div class="d-install-btn" style="background:var(--green);">✓ Installed · Active</div>
+      <div class="d-price-note">Free · 32,147 installs · 80/20 revenue split</div>
+    </div>
+  </div>
+
+</div>
+<script>
+function setFilter(el) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+function selectAlgo(el) {
+  document.querySelectorAll('.algo-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>

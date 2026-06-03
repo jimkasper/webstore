@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Stoll — Media</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+.media-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.media-tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; }
+.media-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.media-tab:hover { color: var(--text); }
+
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.photo-tile { aspect-ratio: 1; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 36px; cursor: pointer; overflow: hidden; position: relative; border-radius: 2px; }
+.photo-tile:hover .photo-overlay { opacity: 1; }
+.photo-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; }
+.photo-overlay span { color: white; font-size: 12px; font-weight: 600; }
+.photo-tile.wide { grid-column: span 2; aspect-ratio: 2/1; }
+.photo-tile.tall { grid-row: span 2; }
+
+.video-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.video-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; }
+.video-thumb { height: 140px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; }
+.video-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.play-btn { width: 44px; height: 44px; background: rgba(0,0,0,.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; }
+.video-info { padding: 10px 12px; }
+.video-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.video-meta { font-size: 11px; color: var(--text-3); }
+
+.album-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.album-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; }
+.album-cover { height: 120px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; }
+.album-cover-tile { background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.album-info { padding: 10px 12px; }
+.album-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.album-count { font-size: 11px; color: var(--text-3); }
+
+.upload-zone { border: 2px dashed var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center; color: var(--text-3); cursor: pointer; margin-bottom: 20px; }
+.upload-zone:hover { border-color: var(--text); color: var(--text); }
+.upload-zone-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-zone-label { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.upload-zone-sub { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl">Wall</a>
+      <a class="snl">About</a>
+      <a class="snl active">Media</a>
+      <a class="snl">Blog</a>
+      <a class="snl">Friends</a>
+      <a class="snl">Activity</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-outline btn-sm">+ Upload</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</nav>
+
+<div class="space-cover" style="height:120px;">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+</div>
+<div class="space-header">
+  <div class="space-header-inner">
+    <div class="space-avatar-wrap"><div class="space-avatar">A</div></div>
+    <div class="space-identity">
+      <div class="space-name">Alex Stoll — Media</div>
+      <div class="space-handle">📸 214 photos · 🎬 8 videos · 📁 12 albums</div>
+    </div>
+    <div class="space-actions">
+      <div class="btn btn-outline btn-sm">💬 Message</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</div>
+
+<div class="space-page full">
+  <div style="max-width:900px;margin:0 auto;width:100%;">
+    <div class="media-tabs">
+      <div class="media-tab active">📸 Photos</div>
+      <div class="media-tab">🎬 Videos</div>
+      <div class="media-tab">📁 Albums</div>
+      <div class="media-tab">🏷 Tagged</div>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+      <div class="btn btn-outline btn-sm">All</div>
+      <div class="btn btn-sm" style="background:var(--text);color:white;">2026</div>
+      <div class="btn btn-outline btn-sm">2025</div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text-3);">214 photos · Sorted: newest first</div>
+    </div>
+
+    <!-- Photo grid — masonry-style via spans -->
+    <div class="photo-grid">
+      <div class="photo-tile wide" style="background:#E8F4F8;">🌆
+        <div class="photo-overlay"><span>❤️ 48 · 💬 3</span></div>
+      </div>
+      <div class="photo-tile" style="background:#F5E6D3;">☕
+        <div class="photo-overlay"><span>❤️ 24</span></div>
+      </div>
+      <div class="photo-tile" style="background:#E8F5E9;">🌿
+        <div class="photo-overlay"><span>❤️ 31 · 💬 2</span></div>
+      </div>
+      <div class="photo-tile" style="background:#F3E8FF;">📖
+        <div class="photo-overlay"><span>❤️ 18</span></div>
+      </div>
+      <div class="photo-tile tall" style="background:#FFF8E1;">🌅
+        <div class="photo-overlay"><span>❤️ 92 · 💬 8</span></div>
+      </div>
+      <div class="photo-tile" style="background:#E3F2FD;">🏙
+        <div class="photo-overlay"><span>❤️ 55</span></div>
+      </div>
+      <div class="photo-tile" style="background:#FCE4EC;">🌸
+        <div class="photo-overlay"><span>❤️ 42 · 💬 5</span></div>
+      </div>
+      <div class="photo-tile" style="background:#E8EAF6;">🎙
+        <div class="photo-overlay"><span>❤️ 67</span></div>
+      </div>
+      <div class="photo-tile wide" style="background:#F1F8E9;">🏃
+        <div class="photo-overlay"><span>❤️ 38 · 💬 4</span></div>
+      </div>
+      <div class="photo-tile" style="background:#FFF3E0;">🍳
+        <div class="photo-overlay"><span>❤️ 22</span></div>
+      </div>
+      <div class="photo-tile" style="background:#E0F2F1;">🚲
+        <div class="photo-overlay"><span>❤️ 29</span></div>
+      </div>
+      <div class="photo-tile" style="background:#F9FBE7;">📷
+        <div class="photo-overlay"><span>❤️ 44 · 💬 6</span></div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <div class="btn btn-outline">Load more photos</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

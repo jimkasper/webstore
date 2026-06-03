@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.research-sidebar { width: 220px; }
+.tree-item { display: flex; align-items: center; gap: 6px; padding: 5px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.tree-item:hover { background: var(--surface-2); color: var(--text); }
+.tree-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.tree-item.indent-1 { padding-left: 26px; }
+.tree-item.indent-2 { padding-left: 38px; }
+.tree-icon { font-size: 13px; flex-shrink: 0; }
+.tree-badge { margin-left: auto; font-size: 10px; background: var(--surface-2); padding: 1px 5px; border-radius: 8px; color: var(--text-3); }
+
+.editor-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); }
+.editor-topbar { height: 44px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 6px; flex-shrink: 0; }
+.editor-content { flex: 1; overflow-y: auto; padding: 40px 60px; max-width: 860px; margin: 0 auto; width: 100%; }
+
+.note-title { font-family: var(--font-serif); font-size: 32px; font-weight: 600; color: var(--text); border: none; outline: none; width: 100%; background: transparent; margin-bottom: 8px; line-height: 1.3; }
+.note-meta { font-size: 12px; color: var(--text-3); margin-bottom: 32px; display: flex; gap: 12px; }
+.note-body { font-size: 14px; line-height: 1.9; color: var(--text); }
+.note-body p { margin-bottom: 16px; }
+.note-body h2 { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--text); margin: 28px 0 12px; }
+.note-body h3 { font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+.note-body ul, .note-body ol { padding-left: 24px; margin-bottom: 16px; }
+.note-body li { margin-bottom: 6px; }
+.note-body blockquote { border-left: 3px solid var(--border); padding-left: 16px; color: var(--text-2); margin: 16px 0; font-style: italic; }
+.note-body code { background: var(--surface-2); padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+
+.backlink-section { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); }
+.backlink-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 10px; }
+.backlink-item { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-2); cursor: pointer; margin-right: 6px; margin-bottom: 6px; }
+.backlink-item:hover { border-color: var(--accent); color: var(--accent); }
+
+.wikilink { color: var(--accent); cursor: pointer; border-bottom: 1px solid var(--accent-bg); text-decoration: none; }
+.wikilink:hover { background: var(--accent-bg); }
+
+.tag-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+
+.right-panel { width: 240px; border-left: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
+.right-panel-tab { display: flex; border-bottom: 1px solid var(--border); }
+.rp-tab { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text-3); border-bottom: 2px solid transparent; }
+.rp-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.rp-content { flex: 1; overflow-y: auto; padding: 12px; }
+.rp-section { margin-bottom: 16px; }
+.rp-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 6px; }
+.rp-link-item { font-size: 12px; color: var(--accent); cursor: pointer; padding: 3px 0; display: flex; align-items: center; gap: 4px; }
+.rp-link-item:hover { text-decoration: underline; }
+.rp-prop { display: flex; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.rp-prop-key { color: var(--text-3); width: 70px; flex-shrink: 0; }
+.rp-prop-val { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🔬</span>
+      <div class="topbar-title">Research</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Notes</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Editor</div>
+      <div class="btn btn-ghost btn-sm">Canvas</div>
+      <div class="btn btn-ghost btn-sm">Graph</div>
+      <div class="topbar-right">
+        <input class="input" style="width:180px;font-size:12px;" placeholder="🔍 Search notes…">
+        <button class="btn btn-primary btn-sm">+ New note</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar: note tree -->
+      <div class="sidebar research-sidebar">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="tree-item"><span class="tree-icon">⭐</span> Quick capture</div>
+          <div class="tree-item"><span class="tree-icon">🕐</span> Recents</div>
+          <div class="tree-item"><span class="tree-icon">📊</span> Graph view</div>
+          <div class="tree-item"><span class="tree-icon">🔗</span> Unlinked mentions</div>
+        </div>
+        <div style="padding:8px 0;">
+          <div class="sidebar-label">Notebooks</div>
+          <div class="tree-item active"><span class="tree-icon">📁</span> Berlin Project <span class="tree-badge">6</span></div>
+          <div class="tree-item indent-1 active"><span class="tree-icon">📄</span> Decision framework</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Team research</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Cost of living comparison</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Contacts in Berlin</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Pros and cons</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Timeline</div>
+          <div class="tree-item"><span class="tree-icon">📁</span> Career <span class="tree-badge">12</span></div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Skills inventory</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> 5-year vision</div>
+          <div class="tree-item"><span class="tree-icon">📁</span> Reading notes <span class="tree-badge">31</span></div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> The Almanack — Naval</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Thinking, Fast and Slow</div>
+          <div class="tree-item indent-1"><span class="tree-icon">📄</span> Deep Work</div>
+          <div class="tree-item"><span class="tree-icon">📁</span> Health & fitness <span class="tree-badge">8</span></div>
+          <div class="tree-item"><span class="tree-icon">📁</span> Ideas <span class="tree-badge">24</span></div>
+          <div class="tree-item" style="color:var(--text-3);font-size:12px;padding-left:18px;">+ New notebook</div>
+        </div>
+      </div>
+
+      <!-- Editor area -->
+      <div class="editor-wrap">
+        <div class="editor-topbar">
+          <div class="btn btn-ghost btn-sm">Berlin Project</div>
+          <span style="color:var(--text-3);font-size:12px;">/</span>
+          <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Decision framework</div>
+          <div style="margin-left:auto;display:flex;gap:4px;">
+            <div class="btn btn-ghost btn-sm">🔗 Copy link</div>
+            <div class="btn btn-ghost btn-sm">⋯</div>
+          </div>
+        </div>
+        <div class="editor-content">
+          <input class="note-title" value="Berlin Project — Decision Framework">
+          <div class="note-meta">
+            <span>Last edited Apr 23, 2026 · 18:34</span>
+            <span>·</span>
+            <span>1,204 words</span>
+          </div>
+          <div class="tag-bar">
+            <span class="tag">#berlin</span>
+            <span class="tag">#career</span>
+            <span class="tag">#decisions</span>
+            <span class="tag" style="cursor:pointer;color:var(--text-3);">+ tag</span>
+          </div>
+
+          <div class="note-body">
+            <h2>Overview</h2>
+            <p>This note tracks my thinking process for the Berlin project decision. Brandt & Co. have offered a 6-month secondment to their Berlin office, leading a new product team. Decision needed by <a class="wikilink">May 1, 2026</a>.</p>
+            <p>Related: <a class="wikilink">[[Team research]]</a> · <a class="wikilink">[[Cost of living comparison]]</a> · <a class="wikilink">[[Contacts in Berlin]]</a></p>
+
+            <h2>Framework</h2>
+            <p>Using a modified version of the <a class="wikilink">[[Regret Minimization Framework]]</a> (Jeff Bezos) combined with a pros/cons weighted matrix.</p>
+
+            <h3>Key questions</h3>
+            <ul>
+              <li>Will I regret <em>not</em> going in 10 years?</li>
+              <li>What specifically am I afraid of — and are those fears rational?</li>
+              <li>What would I need to be true for this to be a clear yes?</li>
+            </ul>
+
+            <h3>Weighted factors</h3>
+            <ol>
+              <li><strong>Career growth</strong> (weight: 30%) — High. Leading a team at this level is rare at this stage.</li>
+              <li><strong>Financial</strong> (weight: 20%) — Neutral. Salary bump covers Berlin's higher cost of living. See <a class="wikilink">[[Cost of living comparison]]</a>.</li>
+              <li><strong>Relationships</strong> (weight: 25%) — Risk. 6 months away from existing relationships. Jamie is supportive but concerned.</li>
+              <li><strong>Reversibility</strong> (weight: 15%) — High. 6-month contract. Clear exit. This is not permanent.</li>
+              <li><strong>Personal growth</strong> (weight: 10%) — High. New city, new culture, new challenge.</li>
+            </ol>
+
+            <blockquote>
+              "The hesitation is just routine anxiety, I think. I've felt this before every good decision I've made."<br>— Morning journal, Apr 24
+            </blockquote>
+
+            <h2>Current position</h2>
+            <p>Leaning <strong>yes</strong>, but want to have an honest conversation with Jamie before deciding. Action: draft a clear picture of what a yes looks like logistically. Write <a class="wikilink">[[decision journal entry]]</a> by Apr 25.</p>
+          </div>
+
+          <div class="backlink-section">
+            <div class="backlink-label">🔗 Linked from (4)</div>
+            <span class="backlink-item">📓 Journal Apr 24 →</span>
+            <span class="backlink-item">📄 5-year vision →</span>
+            <span class="backlink-item">📄 Pros and cons →</span>
+            <span class="backlink-item">📄 Timeline →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="right-panel-tab">
+          <div class="rp-tab active">Links</div>
+          <div class="rp-tab">Props</div>
+          <div class="rp-tab">Clips</div>
+        </div>
+        <div class="rp-content">
+          <div class="rp-section">
+            <div class="rp-section-label">Outgoing links (5)</div>
+            <div class="rp-link-item">📄 Team research</div>
+            <div class="rp-link-item">📄 Cost of living comparison</div>
+            <div class="rp-link-item">📄 Contacts in Berlin</div>
+            <div class="rp-link-item">📄 Regret Minimization Framework</div>
+            <div class="rp-link-item">📓 Journal Apr 24</div>
+          </div>
+          <div class="rp-section">
+            <div class="rp-section-label">Backlinks (4)</div>
+            <div class="rp-link-item">📓 Journal Apr 24</div>
+            <div class="rp-link-item">📄 5-year vision</div>
+            <div class="rp-link-item">📄 Pros and cons</div>
+            <div class="rp-link-item">📄 Timeline</div>
+          </div>
+          <div class="rp-section">
+            <div class="rp-section-label">Unlinked mentions (2)</div>
+            <div class="rp-link-item" style="color:var(--text-3);">📄 Career goals 2026</div>
+            <div class="rp-link-item" style="color:var(--text-3);">📓 Journal Apr 21</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nTogether — Mockups</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body { background: var(--bg); padding: 48px 24px; }
+.hub { max-width: 960px; margin: 0 auto; }
+h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 600; margin-bottom: 6px; }
+.subtitle { color: var(--text-2); margin-bottom: 48px; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 16px; }
+.section-note { font-size: 12px; color: var(--text-3); margin-top: -10px; margin-bottom: 16px; line-height: 1.5; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; }
+.mock-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; text-decoration: none; color: var(--text); display: block; transition: box-shadow .15s, transform .15s; }
+.mock-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.mock-icon { font-size: 28px; margin-bottom: 12px; }
+.mock-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.mock-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.badge-new { display: inline-block; background: var(--green-bg); color: var(--green); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; text-transform: uppercase; }
+.badge-life { display: inline-block; background: var(--accent-bg); color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; text-transform: uppercase; }
+
+.sub-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 10px; margin-top: 0; padding: 6px 10px; background: var(--surface-2); border-radius: var(--radius-sm); display: inline-block; }
+</style>
+</head>
+<body>
+<div class="hub">
+  <h1>nTogether Mockups</h1>
+  <p class="subtitle">Static UI mockups — open any file in a browser. No server required.</p>
+
+  <!-- ENGINE & Auth -->
+  <div class="section-title">Platform — ENGINE &amp; Auth <span class="badge-new">New</span></div>
+  <div class="grid">
+    <a class="mock-card" href="engine/login.html">
+      <div class="mock-icon">🔑</div>
+      <div class="mock-name">Sign In</div>
+      <div class="mock-desc">Login — handle or email, Tier 1–2 anonymous auth note</div>
+    </a>
+    <a class="mock-card" href="engine/register.html">
+      <div class="mock-icon">🏗</div>
+      <div class="mock-name">Create SPACE</div>
+      <div class="mock-desc">3-step onboarding + optional 6-step wizard — purpose, look &amp; feel, pages</div>
+    </a>
+    <a class="mock-card" href="profile-editor.html">
+      <div class="mock-icon">🎨</div>
+      <div class="mock-name">BUILDSPACE Editor</div>
+      <div class="mock-desc">Visual site builder — STYLE (colours/fonts), THEME (full page/block template), modules</div>
+    </a>
+  </div>
+
+  <!-- LIFE Suite -->
+  <div class="section-title">LIFE Suite — 15 apps</div>
+  <div class="section-note">All LIFE apps are local-first (SQLite on device) and mobile-first (Expo). They can also be mounted as pages on your SPACE profile, surfacing public-facing data from the same store. Native desktop (Tauri) and mobile (Expo) apps share the same local data with no sync required.</div>
+  <div class="grid">
+    <a class="mock-card" href="life/contacts.html">
+      <div class="mock-icon">👥</div>
+      <div class="mock-name">Contacts <span class="badge-new">New</span></div>
+      <div class="mock-desc">Address book + SPACE social layer — on/off platform, groups, private notes</div>
+    </a>
+    <a class="mock-card" href="life/groups.html">
+      <div class="mock-icon">🗂</div>
+      <div class="mock-name">Groups <span class="badge-new">New</span></div>
+      <div class="mock-desc">Mailing lists, event rosters, crews — contact resolution for form submissions</div>
+    </a>
+    <a class="mock-card" href="life/aroundtown.html">
+      <div class="mock-icon">🗺</div>
+      <div class="mock-name">Around Town <span class="badge-new">New</span></div>
+      <div class="mock-desc">Personal city guide — venue specials, happy hours, friends on staff</div>
+    </a>
+    <a class="mock-card" href="life/journal.html">
+      <div class="mock-icon">📓</div>
+      <div class="mock-name">Journal</div>
+      <div class="mock-desc">Morning prompts, nightly reflection, decision log</div>
+    </a>
+    <a class="mock-card" href="life/scheduler.html">
+      <div class="mock-icon">📅</div>
+      <div class="mock-name">Scheduler</div>
+      <div class="mock-desc">Calendar views, shared events, recurring tasks</div>
+    </a>
+    <a class="mock-card" href="life/lists.html">
+      <div class="mock-icon">✅</div>
+      <div class="mock-name">Lists</div>
+      <div class="mock-desc">Need-dos, should-dos, to-dos and collection lists</div>
+    </a>
+    <a class="mock-card" href="life/planner.html">
+      <div class="mock-icon">🎯</div>
+      <div class="mock-name">Planner</div>
+      <div class="mock-desc">Goals, milestones, habits, and progress tracking</div>
+    </a>
+    <a class="mock-card" href="life/diet.html">
+      <div class="mock-icon">🥗</div>
+      <div class="mock-name">Diet</div>
+      <div class="mock-desc">Meal logging, nutrition targets, wellbeing ROI</div>
+    </a>
+    <a class="mock-card" href="life/financial.html">
+      <div class="mock-icon">💳</div>
+      <div class="mock-name">Financial</div>
+      <div class="mock-desc">Spending tracking, budgets, financial intelligence</div>
+    </a>
+    <a class="mock-card" href="life/agreement.html">
+      <div class="mock-icon">🤝</div>
+      <div class="mock-name">Agreement</div>
+      <div class="mock-desc">Contracts, obligations, subscription tracker</div>
+    </a>
+    <a class="mock-card" href="life/research.html">
+      <div class="mock-icon">🔬</div>
+      <div class="mock-name">Research</div>
+      <div class="mock-desc">Notes, canvas, bi-directional links, web clipping</div>
+    </a>
+    <a class="mock-card" href="life/posthumous.html">
+      <div class="mock-icon">🕊️</div>
+      <div class="mock-name">Posthumous</div>
+      <div class="mock-desc">Estate management, legacy contacts, directives</div>
+    </a>
+    <a class="mock-card" href="connect/datahub.html">
+      <div class="mock-icon">🔭</div>
+      <div class="mock-name">LENS <span class="badge-new">New</span></div>
+      <div class="mock-desc">SQL explorer, AI natural-language queries, charts — all your LIFE data in one view</div>
+    </a>
+    <a class="mock-card" href="life/achievements.html">
+      <div class="mock-icon">🏆</div>
+      <div class="mock-name">ACHIEVEMENTS <span class="badge-new">New</span></div>
+      <div class="mock-desc">Provable goals with progressive rewards — geo, financial, health, and LENS proof; earns platform credits</div>
+    </a>
+    <a class="mock-card" href="life/triggers.html">
+      <div class="mock-icon">⚡</div>
+      <div class="mock-name">TRIGGERS <span class="badge-new">New</span></div>
+      <div class="mock-desc">Condition-based reminders — fires when location, schedule, contacts, and data align; tradeable presets</div>
+    </a>
+  </div>
+
+  <!-- SPACE -->
+  <div class="section-title">SPACE — Profile &amp; Pages <span class="badge-new">New</span></div>
+  <div class="section-note">A SPACE is the user's personal website on nTogether. Pages are independently activated. LIFE app pages pull live from the same local data store as the installed LIFE apps — no separate sync or duplication required.</div>
+
+  <div class="sub-label" style="margin-bottom:12px;">Core pages</div>
+  <div class="grid">
+    <a class="mock-card" href="space/profile.html">
+      <div class="mock-icon">🏠</div>
+      <div class="mock-name">Wall / Profile</div>
+      <div class="mock-desc">Public landing page — posts, pinned content, sidebar stats</div>
+    </a>
+    <a class="mock-card" href="space/feed.html">
+      <div class="mock-icon">📡</div>
+      <div class="mock-name">Social Feed <span class="badge-new">New</span></div>
+      <div class="mock-desc">Following feed as a SPACE page — compose posts, see updates from connections</div>
+    </a>
+    <a class="mock-card" href="space/about.html">
+      <div class="mock-icon">👤</div>
+      <div class="mock-name">About</div>
+      <div class="mock-desc">Bio, work history, skills, links, current reading</div>
+    </a>
+    <a class="mock-card" href="space/media.html">
+      <div class="mock-icon">🖼</div>
+      <div class="mock-name">Media</div>
+      <div class="mock-desc">Photo grid, video library, albums, tagged content</div>
+    </a>
+    <a class="mock-card" href="space/blog.html">
+      <div class="mock-icon">✍️</div>
+      <div class="mock-name">Blog</div>
+      <div class="mock-desc">Articles, categories, series, subscribe</div>
+    </a>
+    <a class="mock-card" href="space/board.html">
+      <div class="mock-icon">💬</div>
+      <div class="mock-name">Board</div>
+      <div class="mock-desc">Per-SPACE message board with sections, roles, threads</div>
+    </a>
+    <a class="mock-card" href="space/friends.html">
+      <div class="mock-icon">🤝</div>
+      <div class="mock-name">Friends</div>
+      <div class="mock-desc">Following, followers, mutuals, suggested connections</div>
+    </a>
+    <a class="mock-card" href="space/activity.html">
+      <div class="mock-icon">⚡</div>
+      <div class="mock-name">Activity</div>
+      <div class="mock-desc">Public activity stream — posts, comments, reactions</div>
+    </a>
+    <a class="mock-card" href="space/wiki.html">
+      <div class="mock-icon">📖</div>
+      <div class="mock-name">Wiki <span class="badge-new">New</span></div>
+      <div class="mock-desc">Personal wiki page — bi-directionally linked notes, knowledge base, public reference</div>
+    </a>
+  </div>
+
+  <div class="sub-label" style="margin-bottom:12px;">LIFE app pages — mount any installed LIFE app as a SPACE page</div>
+  <div class="grid">
+    <a class="mock-card" href="life/journal.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">📓</div>
+      <div class="mock-name">Journal Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public journal entries from the Journal app — owner controls which entries are visible</div>
+    </a>
+    <a class="mock-card" href="life/scheduler.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">📅</div>
+      <div class="mock-name">Schedule Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public calendar from Scheduler — upcoming events, recurring bookings, shows</div>
+    </a>
+    <a class="mock-card" href="life/planner.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">🎯</div>
+      <div class="mock-name">Goals Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public goals and progress from Planner — share milestones with your audience</div>
+    </a>
+    <a class="mock-card" href="life/aroundtown.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">🗺</div>
+      <div class="mock-name">Places Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Your curated city guide from Around Town — favourite spots, venues, events</div>
+    </a>
+    <a class="mock-card" href="life/lists.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">✅</div>
+      <div class="mock-name">Lists Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public lists from Lists — reading lists, bucket lists, favourites, recommendations</div>
+    </a>
+    <a class="mock-card" href="life/research.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">🔬</div>
+      <div class="mock-name">Notes Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public research notes from Research — shared knowledge, essays, linked ideas</div>
+    </a>
+    <a class="mock-card" href="connect/datahub.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">🔭</div>
+      <div class="mock-name">LENS Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Personal data dashboard from LENS — public charts, stats, and year-in-review views</div>
+    </a>
+    <a class="mock-card" href="life/achievements.html" style="border-color:var(--accent-bg);">
+      <div class="mock-icon">🏆</div>
+      <div class="mock-name">Achievements Page <span class="badge-life">LIFE</span></div>
+      <div class="mock-desc">Public achievement badges and streaks from ACHIEVEMENTS — owner controls which to display</div>
+    </a>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="section-title">Dashboard — DASH <span class="badge-new">New</span></div>
+  <div class="grid">
+    <a class="mock-card" href="dash/dashboard.html">
+      <div class="mock-icon">⊞</div>
+      <div class="mock-name">Dashboard</div>
+      <div class="mock-desc">Unified overview — schedule, habits, tasks, nutrition, finances, goals</div>
+    </a>
+  </div>
+
+  <!-- TRADING POST -->
+  <div class="section-title">TRADING POST <span class="badge-new">New</span></div>
+  <div class="section-note">The central hub for all commerce, trading, and exchange on nTogether. Everything bought, sold, or traded on the platform passes through TRADING POST — algorithms, themes, blocks, templates, digital products, merch, services, and platform credits.</div>
+  <div class="grid">
+    <a class="mock-card" href="connect/algorithms.html">
+      <div class="mock-icon">🏪</div>
+      <div class="mock-name">TRADING POST <span class="badge-new">New</span></div>
+      <div class="mock-desc">All-in-one marketplace — algorithms, SPACE themes, blocks, digital products, merch, services, credits</div>
+    </a>
+  </div>
+
+  <!-- CONNECT -->
+  <div class="section-title">CONNECT — Network Discovery</div>
+  <div class="section-note">CONNECT is the content-discovery layer across all SPACEs on the network — browse and stream media, find people, and search across the platform.</div>
+  <div class="grid">
+    <a class="mock-card" href="connect/music.html">
+      <div class="mock-icon">🎵</div>
+      <div class="mock-name">Music Library</div>
+      <div class="mock-desc">Stream music hosted on creator SPACEs — player, albums, network picks</div>
+    </a>
+    <a class="mock-card" href="connect/video.html">
+      <div class="mock-icon">🎬</div>
+      <div class="mock-name">Video Library</div>
+      <div class="mock-desc">Watch videos from creator SPACEs — inline player, subscriptions, trending</div>
+    </a>
+    <a class="mock-card" href="connect/podcast.html">
+      <div class="mock-icon">🎙</div>
+      <div class="mock-name">Podcasts <span class="badge-new">New</span></div>
+      <div class="mock-desc">Shows, episodes, subscriptions — player with speed control and sleep timer</div>
+    </a>
+    <a class="mock-card" href="connect/search.html">
+      <div class="mock-icon">🔍</div>
+      <div class="mock-name">Search <span class="badge-new">New</span></div>
+      <div class="mock-desc">Global search — people, SPACEs, posts, music, video, podcasts, repos</div>
+    </a>
+  </div>
+
+  <!-- MESSENGER -->
+  <div class="section-title">MESSENGER <span class="badge-new">New</span></div>
+  <div class="grid">
+    <a class="mock-card" href="messenger/chat.html">
+      <div class="mock-icon">💬</div>
+      <div class="mock-name">Chat</div>
+      <div class="mock-desc">E2E encrypted 1-on-1 messaging — voice notes, images, reactions, message requests</div>
+    </a>
+  </div>
+
+  <!-- CLOUD -->
+  <div class="section-title">CLOUD <span class="badge-new">New</span></div>
+  <div class="grid">
+    <a class="mock-card" href="cloud/files.html">
+      <div class="mock-icon">☁</div>
+      <div class="mock-name">Files &amp; Media Archiver</div>
+      <div class="mock-desc">File browser, storage quota, media archiver — paste any URL to save to CLOUD</div>
+    </a>
+  </div>
+
+  <!-- Platform Settings -->
+  <div class="section-title">Platform Settings</div>
+  <div class="section-note">Cross-platform configuration — AI providers, data connections, and privacy controls. These settings are shared across all LIFE apps and SPACE pages.</div>
+  <div class="grid">
+    <a class="mock-card" href="settings/ai.html">
+      <div class="mock-icon">🤖</div>
+      <div class="mock-name">AI Settings <span class="badge-new">New</span></div>
+      <div class="mock-desc">Local AI via Ollama (Llama, Mistral, Phi-3) + cloud providers (Anthropic, OpenAI, Gemini) — privacy-tier gated</div>
+    </a>
+    <a class="mock-card" href="settings/import.html">
+      <div class="mock-icon">📥</div>
+      <div class="mock-name">Data Import <span class="badge-new">New</span></div>
+      <div class="mock-desc">Import from 40+ platforms — social media archives, health APIs, Plaid live banking, receipt scan, custom CSV</div>
+    </a>
+    <a class="mock-card" href="settings/privacy.html">
+      <div class="mock-icon">🔒</div>
+      <div class="mock-name">Privacy &amp; Tiers</div>
+      <div class="mock-desc">Choose privacy tier T1–T5 — controls what data leaves the device and which AI modes are available</div>
+    </a>
+  </div>
+
+</div>
+</body>
+</html>

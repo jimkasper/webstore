@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create your SPACE — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+body { background:var(--bg); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+
+.launch-banner { position:fixed; top:0; left:0; right:0; background:var(--accent); color:#fff; font-size:12px; font-weight:600; text-align:center; padding:7px; z-index:100; }
+.launch-banner span { background:rgba(255,255,255,.2); border-radius:4px; padding:1px 6px; margin-left:6px; }
+
+.auth-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:40px; width:100%; max-width:560px; box-shadow:var(--shadow-lg); margin-top:32px; }
+.auth-logo { text-align:center; margin-bottom:28px; }
+.auth-logo-mark { font-size:36px; font-weight:800; color:var(--text); letter-spacing:-1px; }
+.auth-logo-sub  { font-size:13px; color:var(--text-2); margin-top:2px; }
+
+/* ── Steps ──────────────────────────────────────────────── */
+.steps { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:32px; overflow-x:auto; padding-bottom:4px; }
+.step { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text-3); flex-shrink:0; }
+.step.active  { color:var(--accent); }
+.step.done    { color:var(--green); }
+.step.hidden  { display:none; }
+.step-dot { width:26px; height:26px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+.step.active .step-dot { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
+.step.done   .step-dot { border-color:var(--green); background:var(--green-bg); color:var(--green); }
+.step-line { width:28px; height:2px; background:var(--border); flex-shrink:0; }
+.step-line.done { background:var(--green); }
+.step-line.hidden { display:none; }
+.step-name { white-space:nowrap; font-size:11px; }
+
+/* ── Step content ─────────────────────────────────────────── */
+.step-panel { display:none; }
+.step-panel.active { display:block; }
+.step-title { font-size:20px; font-weight:700; margin-bottom:4px; }
+.step-sub   { font-size:13px; color:var(--text-2); margin-bottom:24px; }
+
+/* ── Form fields ─────────────────────────────────────────── */
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:5px; }
+.field input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; outline:none; color:var(--text); background:var(--bg); }
+.field input:focus { border-color:var(--accent); background:var(--surface); }
+.field-hint { font-size:11px; color:var(--text-3); margin-top:4px; }
+.field-handle { position:relative; }
+.field-handle input { padding-left:36px; }
+.field-at { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--text-3); font-weight:500; pointer-events:none; }
+.field-optional { font-size:10px; color:var(--text-3); background:var(--surface-2); border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
+
+/* ── Tier selection ──────────────────────────────────────── */
+.tier-grid { display:flex; flex-direction:column; gap:10px; margin-bottom:8px; }
+.tier-card { border:2px solid var(--border); border-radius:var(--radius); padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:border-color .15s, background .15s; }
+.tier-card:hover { border-color:var(--text-3); }
+.tier-card.selected { border-color:var(--accent); background:var(--accent-bg); }
+.tier-badge { width:32px; height:32px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0; }
+.tier-info { flex:1; min-width:0; }
+.tier-name { font-size:13px; font-weight:700; }
+.tier-desc { font-size:11px; color:var(--text-2); margin-top:1px; }
+.tier-price { font-size:13px; font-weight:700; text-align:right; flex-shrink:0; }
+.tier-price .free-badge { font-size:10px; font-weight:700; background:var(--green-bg); color:var(--green); padding:2px 6px; border-radius:4px; display:block; margin-top:2px; }
+.tier-note { font-size:11px; color:var(--text-3); text-align:center; margin-top:8px; }
+
+/* ── SPACE setup ─────────────────────────────────────────── */
+.avatar-upload { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.avatar-placeholder { width:64px; height:64px; border-radius:50%; background:var(--surface-2); border:2px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; cursor:pointer; flex-shrink:0; }
+.avatar-upload-btn { font-size:13px; color:var(--accent); cursor:pointer; font-weight:500; }
+.avatar-upload-sub { font-size:11px; color:var(--text-3); margin-top:2px; }
+.field textarea { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:14px; outline:none; color:var(--text); background:var(--bg); resize:vertical; min-height:72px; font-family:var(--font); }
+.field textarea:focus { border-color:var(--accent); background:var(--surface); }
+
+/* ── Nav buttons ─────────────────────────────────────────── */
+.step-nav { display:flex; gap:10px; margin-top:24px; }
+.btn-next { flex:1; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; transition:background .12s; }
+.btn-next:hover { background:#2563EB; }
+.btn-back { padding:10px 18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-weight:500; cursor:pointer; color:var(--text-2); }
+.btn-back:hover { background:var(--surface-2); }
+
+.auth-alt { text-align:center; font-size:13px; color:var(--text-2); margin-top:20px; }
+.auth-alt a { color:var(--accent); font-weight:500; }
+
+/* ── Wizard fork (end of step 3) ─────────────────────────── */
+.fork-box { border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; text-align:center; margin-top:8px; }
+.fork-box-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.fork-box-sub { font-size:13px; color:var(--text-2); margin-bottom:20px; }
+.fork-btns { display:flex; gap:10px; }
+.btn-personalize { flex:1; padding:11px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; }
+.btn-personalize:hover { background:#2563EB; }
+.btn-launch-now { flex:1; padding:11px; background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; }
+.btn-launch-now:hover { background:var(--border); }
+.fork-steps-preview { display:flex; justify-content:center; gap:16px; margin-bottom:16px; }
+.fork-preview-step { text-align:center; font-size:11px; color:var(--text-3); }
+.fork-preview-step .fpi { font-size:20px; margin-bottom:4px; }
+
+/* ── Purpose & Use (step 4) ──────────────────────────────── */
+.purpose-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; }
+.purpose-card { border:2px solid var(--border); border-radius:var(--radius); padding:14px; cursor:pointer; transition:border-color .15s, background .15s; }
+.purpose-card:hover { border-color:var(--text-3); }
+.purpose-card.selected { border-color:var(--accent); background:var(--accent-bg); }
+.purpose-icon { font-size:22px; margin-bottom:6px; }
+.purpose-name { font-size:13px; font-weight:700; margin-bottom:2px; }
+.purpose-desc { font-size:11px; color:var(--text-2); }
+
+.use-panel { margin-top:16px; }
+.use-panel-title { font-size:12px; font-weight:600; color:var(--text-3); margin-bottom:8px; }
+.use-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.use-chip { padding:5px 12px; border:1px solid var(--border); border-radius:20px; font-size:12px; cursor:pointer; color:var(--text-2); background:var(--surface); transition:all .12s; }
+.use-chip:hover { border-color:var(--accent); color:var(--accent); }
+.use-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* ── Look & Feel (step 5) ────────────────────────────────── */
+.theme-swatches { display:flex; gap:10px; margin-bottom:16px; }
+.theme-swatch { flex:1; border-radius:var(--radius); overflow:hidden; cursor:pointer; border:3px solid transparent; transition:border-color .15s; }
+.theme-swatch.selected { border-color:var(--accent); }
+.theme-preview { height:56px; }
+.theme-name { font-size:11px; font-weight:600; text-align:center; padding:5px 0; color:var(--text-2); background:var(--surface); }
+
+.cover-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.cover-option { border:2px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color .15s; }
+.cover-option:hover { border-color:var(--text-3); }
+.cover-option.selected { border-color:var(--accent); }
+.cover-preview { height:48px; }
+.cover-label { font-size:11px; font-weight:600; text-align:center; padding:5px; color:var(--text-2); background:var(--surface); }
+
+/* ── Pages (step 6) ──────────────────────────────────────── */
+.pages-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+.page-option { border:2px solid var(--border); border-radius:var(--radius); padding:12px; cursor:pointer; display:flex; align-items:center; gap:10px; transition:border-color .15s, background .15s; }
+.page-option:hover { border-color:var(--text-3); }
+.page-option.selected { border-color:var(--accent); background:var(--accent-bg); }
+.page-option.required { border-color:var(--green); background:var(--green-bg); cursor:default; }
+.page-icon { font-size:18px; flex-shrink:0; }
+.page-name { font-size:13px; font-weight:600; }
+.page-desc { font-size:11px; color:var(--text-2); margin-top:1px; }
+.page-check { margin-left:auto; width:18px; height:18px; border-radius:4px; border:1.5px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.page-option.selected .page-check { background:var(--accent); border-color:var(--accent); color:#fff; }
+.page-option.required .page-check { background:var(--green); border-color:var(--green); color:#fff; }
+
+.social-links-section { margin-top:8px; }
+.social-link-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.social-link-platform { width:120px; padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--surface-2); color:var(--text); outline:none; flex-shrink:0; }
+.social-link-handle { flex:1; padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; background:var(--bg); color:var(--text); outline:none; }
+.social-link-handle:focus { border-color:var(--accent); }
+.social-add-btn { font-size:12px; color:var(--accent); cursor:pointer; font-weight:500; padding:4px 0; }
+</style>
+</head>
+<body>
+
+<div class="launch-banner">
+  🎉 All tiers are free during the launch period <span>Join free today</span>
+</div>
+
+<div class="auth-card" id="reg-card">
+  <div class="auth-logo">
+    <div class="auth-logo-mark">nTogether</div>
+    <div class="auth-logo-sub">Your personal platform</div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps" id="steps-bar">
+    <div class="step active" id="s1">
+      <div class="step-dot">1</div>
+      <span class="step-name">Account</span>
+    </div>
+    <div class="step-line" id="l1"></div>
+    <div class="step" id="s2">
+      <div class="step-dot">2</div>
+      <span class="step-name">Privacy</span>
+    </div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3">
+      <div class="step-dot">3</div>
+      <span class="step-name">Your SPACE</span>
+    </div>
+    <!-- Wizard steps — hidden until "Personalize" is chosen -->
+    <div class="step-line hidden" id="l3"></div>
+    <div class="step hidden" id="s4">
+      <div class="step-dot">4</div>
+      <span class="step-name">Purpose</span>
+    </div>
+    <div class="step-line hidden" id="l4"></div>
+    <div class="step hidden" id="s5">
+      <div class="step-dot">5</div>
+      <span class="step-name">Look &amp; Feel</span>
+    </div>
+    <div class="step-line hidden" id="l5"></div>
+    <div class="step hidden" id="s6">
+      <div class="step-dot">6</div>
+      <span class="step-name">Pages</span>
+    </div>
+  </div>
+
+  <!-- Step 1 — Account -->
+  <div class="step-panel active" id="panel-1">
+    <div class="step-title">Create your account</div>
+    <div class="step-sub">Your handle is your identity on nTogether. Pick it carefully.</div>
+
+    <div class="field">
+      <label>Handle</label>
+      <div class="field-handle">
+        <span class="field-at">@</span>
+        <input type="text" placeholder="yourhandle" value="alexchen">
+      </div>
+      <div class="field-hint">ntogether.com/@alexchen · Cannot be changed for 30 days after creation</div>
+    </div>
+
+    <div class="field">
+      <label>Email <span class="field-optional">Optional for Tier 1–2</span></label>
+      <input type="email" placeholder="you@example.com">
+      <div class="field-hint">Used for account recovery. Not required at Tier 1 or 2 — stay fully anonymous.</div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="At least 12 characters" value="••••••••••••••">
+    </div>
+
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" placeholder="Repeat password" value="••••••••••••••">
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-next" onclick="goStep(2)">Continue →</button>
+    </div>
+    <div class="auth-alt">Already have an account? <a href="login.html">Sign in</a></div>
+  </div>
+
+  <!-- Step 2 — Privacy Tier -->
+  <div class="step-panel" id="panel-2">
+    <div class="step-title">Choose your privacy tier</div>
+    <div class="step-sub">Your tier controls what the platform can see about you — not what you can do. You can change it later.</div>
+
+    <div class="tier-grid">
+      <div class="tier-card selected" onclick="selectTier(this)">
+        <div class="tier-badge" style="background:var(--green-bg);color:var(--green);">T1</div>
+        <div class="tier-info">
+          <div class="tier-name">Tier 1 — Maximum Privacy</div>
+          <div class="tier-desc">Zero platform access. Fully anonymous. No email required. On-device AI only.</div>
+        </div>
+        <div class="tier-price">$50/mo<span class="free-badge">FREE now</span></div>
+      </div>
+      <div class="tier-card" onclick="selectTier(this)">
+        <div class="tier-badge" style="background:var(--accent-bg);color:var(--accent);">T2</div>
+        <div class="tier-info">
+          <div class="tier-name">Tier 2 — Private</div>
+          <div class="tier-desc">Platform sees anonymized aggregate stats only. No identity linkage. On-device AI.</div>
+        </div>
+        <div class="tier-price">$35/mo<span class="free-badge">FREE now</span></div>
+      </div>
+      <div class="tier-card" onclick="selectTier(this)">
+        <div class="tier-badge" style="background:var(--amber-bg);color:var(--amber);">T3</div>
+        <div class="tier-info">
+          <div class="tier-name">Tier 3 — Balanced</div>
+          <div class="tier-desc">Behavioral patterns visible, not identity-linked. Platform AI for queries.</div>
+        </div>
+        <div class="tier-price">$25/mo<span class="free-badge">FREE now</span></div>
+      </div>
+      <div class="tier-card" onclick="selectTier(this)">
+        <div class="tier-badge" style="background:var(--red-bg);color:var(--red);">T4</div>
+        <div class="tier-info">
+          <div class="tier-name">Tier 4 — Connected</div>
+          <div class="tier-desc">Full data linked to identity for internal platform use. Ad-reduced.</div>
+        </div>
+        <div class="tier-price">$12/mo<span class="free-badge">FREE now</span></div>
+      </div>
+      <div class="tier-card" onclick="selectTier(this)">
+        <div class="tier-badge" style="background:var(--surface-2);color:var(--text-2);">T5</div>
+        <div class="tier-info">
+          <div class="tier-name">Tier 5 — Free</div>
+          <div class="tier-desc">Full platform access. Data monetized via CONNECT marketplace. Ad-supported.</div>
+        </div>
+        <div class="tier-price" style="color:var(--green);font-size:15px;">Free</div>
+      </div>
+    </div>
+    <div class="tier-note">All tiers have identical social features. Your tier is invisible to other users.</div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goStep(1)">← Back</button>
+      <button class="btn-next" onclick="goStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 3 — SPACE setup -->
+  <div class="step-panel" id="panel-3">
+    <div class="step-title">Set up your SPACE</div>
+    <div class="step-sub">Your SPACE is your personal website on nTogether.</div>
+
+    <div class="avatar-upload">
+      <div class="avatar-placeholder">📷</div>
+      <div>
+        <div class="avatar-upload-btn">Upload profile photo</div>
+        <div class="avatar-upload-sub">JPG, PNG, GIF up to 5 MB</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Display name</label>
+      <input type="text" placeholder="Your name or alias" value="Alex Chen">
+    </div>
+
+    <div class="field">
+      <label>Bio <span class="field-optional">Optional</span></label>
+      <textarea placeholder="A short bio for your SPACE…">Musician & producer. Making indie folk from San Francisco. EP coming soon.</textarea>
+    </div>
+
+    <div class="field">
+      <label>Your SPACE URL</label>
+      <input type="text" value="ntogether.com/@alexchen" disabled style="color:var(--text-3);">
+      <div class="field-hint">Custom domains can be added after registration</div>
+    </div>
+
+    <!-- Fork -->
+    <div class="fork-box">
+      <div class="fork-box-title">Want to personalize your SPACE before launch?</div>
+      <div class="fork-box-sub">Takes about 2 minutes. You can change everything later.</div>
+      <div class="fork-steps-preview">
+        <div class="fork-preview-step"><div class="fpi">🎯</div>Purpose &amp; Use</div>
+        <div class="fork-preview-step"><div class="fpi">🎨</div>Look &amp; Feel</div>
+        <div class="fork-preview-step"><div class="fpi">📄</div>Pages</div>
+      </div>
+      <div class="fork-btns">
+        <button class="btn-personalize" onclick="startWizard()">Personalize my SPACE →</button>
+        <button class="btn-launch-now" onclick="finish()">Create now</button>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goStep(2)">← Back</button>
+    </div>
+  </div>
+
+  <!-- Step 4 — Purpose & Use -->
+  <div class="step-panel" id="panel-4">
+    <div class="step-title">What's your SPACE for?</div>
+    <div class="step-sub">Choose a primary purpose. This shapes the pages and templates shown to you. Select all that apply.</div>
+
+    <div class="purpose-grid">
+      <div class="purpose-card selected" id="pur-personal" onclick="selectPurpose('personal', this)">
+        <div class="purpose-icon">👤</div>
+        <div class="purpose-name">Personal</div>
+        <div class="purpose-desc">Blog, social, memories, networking</div>
+      </div>
+      <div class="purpose-card" id="pur-content" onclick="selectPurpose('content', this)">
+        <div class="purpose-icon">🎵</div>
+        <div class="purpose-name">Content Creation</div>
+        <div class="purpose-desc">Music, podcast, video, writing</div>
+      </div>
+      <div class="purpose-card" id="pur-business" onclick="selectPurpose('business', this)">
+        <div class="purpose-icon">💼</div>
+        <div class="purpose-name">Business</div>
+        <div class="purpose-desc">Shop, service, portfolio, startup</div>
+      </div>
+      <div class="purpose-card" id="pur-group" onclick="selectPurpose('group', this)">
+        <div class="purpose-icon">👥</div>
+        <div class="purpose-name">Group / Community</div>
+        <div class="purpose-desc">Fan page, club, crew, cause</div>
+      </div>
+    </div>
+
+    <!-- Use chips — changes with purpose selection -->
+    <div class="use-panel" id="use-panel-personal">
+      <div class="use-panel-title">What will you use it for?</div>
+      <div class="use-chips">
+        <div class="use-chip active" onclick="toggleChip(this)">Social Networking</div>
+        <div class="use-chip active" onclick="toggleChip(this)">Blog</div>
+        <div class="use-chip" onclick="toggleChip(this)">Professional Networking</div>
+        <div class="use-chip" onclick="toggleChip(this)">Keeping in Touch</div>
+        <div class="use-chip" onclick="toggleChip(this)">Saving Memories</div>
+        <div class="use-chip" onclick="toggleChip(this)">Learning Journal</div>
+        <div class="use-chip" onclick="toggleChip(this)">Travel Diary</div>
+      </div>
+    </div>
+
+    <div class="use-panel" id="use-panel-content" style="display:none;">
+      <div class="use-panel-title">What kind of content?</div>
+      <div class="use-chips">
+        <div class="use-chip active" onclick="toggleChip(this)">Music</div>
+        <div class="use-chip" onclick="toggleChip(this)">Podcast</div>
+        <div class="use-chip" onclick="toggleChip(this)">Video</div>
+        <div class="use-chip" onclick="toggleChip(this)">Portfolio</div>
+        <div class="use-chip" onclick="toggleChip(this)">Writing</div>
+        <div class="use-chip" onclick="toggleChip(this)">Influencer</div>
+        <div class="use-chip" onclick="toggleChip(this)">Shop</div>
+        <div class="use-chip" onclick="toggleChip(this)">Newsletter</div>
+        <div class="use-chip" onclick="toggleChip(this)">Photography</div>
+      </div>
+    </div>
+
+    <div class="use-panel" id="use-panel-business" style="display:none;">
+      <div class="use-panel-title">What type of business?</div>
+      <div class="use-chips">
+        <div class="use-chip" onclick="toggleChip(this)">Bar / Restaurant</div>
+        <div class="use-chip" onclick="toggleChip(this)">Retail</div>
+        <div class="use-chip" onclick="toggleChip(this)">Service</div>
+        <div class="use-chip" onclick="toggleChip(this)">Online Shop</div>
+        <div class="use-chip" onclick="toggleChip(this)">Start-up</div>
+        <div class="use-chip" onclick="toggleChip(this)">Portfolio / Agency</div>
+        <div class="use-chip" onclick="toggleChip(this)">Freelancer</div>
+        <div class="use-chip" onclick="toggleChip(this)">Nonprofit</div>
+      </div>
+    </div>
+
+    <div class="use-panel" id="use-panel-group" style="display:none;">
+      <div class="use-panel-title">What type of community?</div>
+      <div class="use-chips">
+        <div class="use-chip" onclick="toggleChip(this)">Fan Page</div>
+        <div class="use-chip" onclick="toggleChip(this)">Likeminded</div>
+        <div class="use-chip" onclick="toggleChip(this)">Crowd Sourcing</div>
+        <div class="use-chip" onclick="toggleChip(this)">Sports &amp; Recreation</div>
+        <div class="use-chip" onclick="toggleChip(this)">Study Group</div>
+        <div class="use-chip" onclick="toggleChip(this)">Book Club</div>
+        <div class="use-chip" onclick="toggleChip(this)">Activism</div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goStep(3)">← Back</button>
+      <button class="btn-next" onclick="goStep(5)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 5 — Look & Feel -->
+  <div class="step-panel" id="panel-5">
+    <div class="step-title">Look &amp; Feel</div>
+    <div class="step-sub">Choose a theme for your SPACE. You can fully customise colors, fonts, and layout after launch.</div>
+
+    <div class="field">
+      <label>Theme</label>
+    </div>
+    <div class="theme-swatches">
+      <div class="theme-swatch selected" onclick="selectTheme(this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#0F0E0C,#6B4226);"></div>
+        <div class="theme-name">Ember</div>
+      </div>
+      <div class="theme-swatch" onclick="selectTheme(this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#0F0F11,#1E3A5F);"></div>
+        <div class="theme-name">Midnight</div>
+      </div>
+      <div class="theme-swatch" onclick="selectTheme(this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#1A0A2E,#7C3AED);"></div>
+        <div class="theme-name">Violet</div>
+      </div>
+      <div class="theme-swatch" onclick="selectTheme(this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#F5F5F0,#E0DDD8);"></div>
+        <div class="theme-name">Paper</div>
+      </div>
+      <div class="theme-swatch" onclick="selectTheme(this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#0A1A0A,#1A4A1A);"></div>
+        <div class="theme-name">Forest</div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label>Cover style</label>
+    </div>
+    <div class="cover-grid">
+      <div class="cover-option selected" onclick="selectCover(this)">
+        <div class="cover-preview" style="background:linear-gradient(135deg,#2C1F14,#6B4226,#A16207);"></div>
+        <div class="cover-label">Gradient</div>
+      </div>
+      <div class="cover-option" onclick="selectCover(this)">
+        <div class="cover-preview" style="background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:20px;">🖼</div>
+        <div class="cover-label">Upload photo</div>
+      </div>
+      <div class="cover-option" onclick="selectCover(this)">
+        <div class="cover-preview" style="background:var(--bg);"></div>
+        <div class="cover-label">None (minimal)</div>
+      </div>
+      <div class="cover-option" onclick="selectCover(this)">
+        <div class="cover-preview" style="background:repeating-linear-gradient(45deg,#1C1A17,#1C1A17 4px,#252220 4px,#252220 8px);"></div>
+        <div class="cover-label">Pattern</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Website <span class="field-optional">Optional</span></label>
+      <input type="text" placeholder="https://yoursite.com">
+    </div>
+
+    <div class="field">
+      <label>Location <span class="field-optional">Optional</span></label>
+      <input type="text" placeholder="City, Country" value="San Francisco, CA">
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goStep(4)">← Back</button>
+      <button class="btn-next" onclick="goStep(6)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 6 — Pages -->
+  <div class="step-panel" id="panel-6">
+    <div class="step-title">Choose your pages</div>
+    <div class="step-sub">Pick the pages you want on your SPACE. All pages can be added or removed later.</div>
+
+    <div class="pages-grid">
+      <div class="page-option required">
+        <div class="page-icon">🏠</div>
+        <div>
+          <div class="page-name">Wall</div>
+          <div class="page-desc">Posts &amp; feed</div>
+        </div>
+        <div class="page-check">✓</div>
+      </div>
+      <div class="page-option selected" onclick="togglePage(this)">
+        <div class="page-icon">👤</div>
+        <div>
+          <div class="page-name">About</div>
+          <div class="page-desc">Bio &amp; links</div>
+        </div>
+        <div class="page-check">✓</div>
+      </div>
+      <div class="page-option selected" onclick="togglePage(this)">
+        <div class="page-icon">🖼</div>
+        <div>
+          <div class="page-name">Media</div>
+          <div class="page-desc">Photos &amp; videos</div>
+        </div>
+        <div class="page-check">✓</div>
+      </div>
+      <div class="page-option selected" onclick="togglePage(this)">
+        <div class="page-icon">🎵</div>
+        <div>
+          <div class="page-name">Music</div>
+          <div class="page-desc">Tracks &amp; albums</div>
+        </div>
+        <div class="page-check">✓</div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">✍️</div>
+        <div>
+          <div class="page-name">Blog</div>
+          <div class="page-desc">Long-form articles</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">💬</div>
+        <div>
+          <div class="page-name">Board</div>
+          <div class="page-desc">Message board</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">🤝</div>
+        <div>
+          <div class="page-name">Friends</div>
+          <div class="page-desc">Following &amp; followers</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">⚡</div>
+        <div>
+          <div class="page-name">Activity</div>
+          <div class="page-desc">Public activity feed</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">🛒</div>
+        <div>
+          <div class="page-name">Shop</div>
+          <div class="page-desc">Products &amp; merch</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+      <div class="page-option" onclick="togglePage(this)">
+        <div class="page-icon">📋</div>
+        <div>
+          <div class="page-name">Lists</div>
+          <div class="page-desc">Playlists, favorites</div>
+        </div>
+        <div class="page-check"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Social links <span class="field-optional">Optional</span></label>
+    </div>
+    <div class="social-links-section">
+      <div class="social-link-row">
+        <select class="social-link-platform">
+          <option>Instagram</option>
+          <option>X / Twitter</option>
+          <option>TikTok</option>
+          <option>YouTube</option>
+          <option>Spotify</option>
+          <option>LinkedIn</option>
+          <option>GitHub</option>
+          <option>Discord</option>
+          <option>Threads</option>
+          <option>SoundCloud</option>
+        </select>
+        <input class="social-link-handle" type="text" placeholder="@handle or URL" value="@alexchen_music">
+      </div>
+      <div class="social-link-row">
+        <select class="social-link-platform">
+          <option>Instagram</option>
+          <option selected>Spotify</option>
+          <option>X / Twitter</option>
+          <option>TikTok</option>
+          <option>YouTube</option>
+        </select>
+        <input class="social-link-handle" type="text" placeholder="@handle or URL" value="spotify.com/artist/alexchen">
+      </div>
+      <div class="social-add-btn">+ Add another link</div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goStep(5)">← Back</button>
+      <button class="btn-next" style="background:var(--green);" onclick="finish()">Create my SPACE 🎉</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentStep = 1;
+let wizardEnabled = false;
+
+function goStep(n) {
+  document.getElementById('panel-'+currentStep).classList.remove('active');
+  document.getElementById('s'+currentStep).classList.remove('active');
+  if (n > currentStep) {
+    document.getElementById('s'+currentStep).classList.add('done');
+    for (let i = currentStep; i < n; i++) {
+      const line = document.getElementById('l'+i);
+      if (line) line.classList.add('done');
+    }
+  }
+  currentStep = n;
+  document.getElementById('panel-'+n).classList.add('active');
+  document.getElementById('s'+n).classList.add('active');
+  document.getElementById('s'+n).classList.remove('done');
+  window.scrollTo(0, 0);
+}
+
+function startWizard() {
+  wizardEnabled = true;
+  // Reveal wizard steps in the stepper
+  ['l3','s4','l4','s5','l5','s6'].forEach(id => {
+    document.getElementById(id).classList.remove('hidden');
+  });
+  goStep(4);
+}
+
+function selectTier(el) {
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectPurpose(type, el) {
+  el.classList.toggle('selected');
+  // Show/hide the matching use panel
+  ['personal','content','business','group'].forEach(t => {
+    document.getElementById('use-panel-'+t).style.display = (t === type && el.classList.contains('selected')) ? 'block' : 'none';
+  });
+}
+
+function toggleChip(el) {
+  el.classList.toggle('active');
+}
+
+function selectTheme(el) {
+  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectCover(el) {
+  document.querySelectorAll('.cover-option').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function togglePage(el) {
+  el.classList.toggle('selected');
+  const check = el.querySelector('.page-check');
+  check.textContent = el.classList.contains('selected') ? '✓' : '';
+}
+
+function finish() {
+  document.getElementById('reg-card').innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:56px;margin-bottom:16px;">🎉</div>
+      <div style="font-size:24px;font-weight:700;margin-bottom:8px;">Welcome, Alex!</div>
+      <div style="font-size:14px;color:var(--text-2);margin-bottom:28px;">Your SPACE is being set up at ntogether.com/@alexchen</div>
+      <button style="padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;" onclick="window.location='../space/profile.html'">Go to my SPACE →</button>
+    </div>`;
+}
+</script>
+</body>
+</html>

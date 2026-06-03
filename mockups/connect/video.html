@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video — CONNECT</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.video-main { flex: 1; display: flex; overflow: hidden; }
+.video-browse { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.video-player-wrap { width: 380px; border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; background: var(--surface); }
+
+.cn-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.cn-item:hover { background: var(--surface-2); color: var(--text); }
+.cn-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.video-card { cursor: pointer; }
+.video-thumb { width: 100%; aspect-ratio: 16/9; background: var(--surface-2); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 44px; margin-bottom: 10px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+.video-thumb.playing { outline: 2px solid var(--accent); }
+.video-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.75); color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 3px; }
+.video-play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; }
+.video-card:hover .video-play-overlay { opacity: 1; }
+.vpo-btn { width: 48px; height: 48px; background: rgba(0,0,0,.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+.video-info { }
+.video-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; line-height: 1.4; }
+.video-channel { font-size: 12px; color: var(--text-2); margin-bottom: 2px; }
+.video-meta-row { font-size: 11px; color: var(--text-3); display: flex; gap: 8px; }
+.video-source { color: var(--accent); font-size: 11px; }
+
+/* Player panel */
+.vp-embed { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; font-size: 64px; flex-shrink: 0; position: relative; }
+.vp-controls { padding: 0 16px 8px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.vp-progress { height: 4px; background: var(--border); border-radius: 2px; margin: 10px 0 8px; cursor: pointer; }
+.vp-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 28%; }
+.vp-btns { display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--text-3); }
+.vp-btns span { cursor: pointer; }
+.vp-btns span:hover { color: var(--text); }
+.vp-time { font-size: 12px; color: var(--text-3); margin-left: auto; }
+.vp-info { padding: 14px 16px; flex: 1; overflow-y: auto; }
+.vp-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.vp-channel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.vp-av { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; }
+.vp-channel { font-size: 12px; color: var(--text-2); }
+.vp-actions { display: flex; gap: 6px; margin-bottom: 14px; }
+.vp-desc { font-size: 12px; color: var(--text-2); line-height: 1.7; }
+
+.up-next { }
+.un-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.un-item:hover .un-title { color: var(--accent); }
+.un-thumb { width: 80px; height: 45px; border-radius: 4px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.un-info { flex: 1; }
+.un-title { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 3px; }
+.un-channel { font-size: 11px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon active" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🔗</span>
+      <div class="topbar-title">CONNECT</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Feed</div>
+      <div class="btn btn-ghost btn-sm">🎵 Music</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">🎬 Video</div>
+      <div class="btn btn-ghost btn-sm">🎙 Podcasts</div>
+      <div class="btn btn-ghost btn-sm">Search</div>
+      <div class="topbar-right">
+        <input class="input" style="width:200px;font-size:12px;" placeholder="🔍 Search video…">
+      </div>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Nav sidebar -->
+      <div class="sidebar" style="width:200px;">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Browse</div>
+          <div class="cn-item active">🏠 Home</div>
+          <div class="cn-item">👁 Following</div>
+          <div class="cn-item">🔥 Trending</div>
+          <div class="cn-item">🔍 Discover</div>
+        </div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Categories</div>
+          <div class="cn-item">🎨 Design</div>
+          <div class="cn-item">🎵 Music</div>
+          <div class="cn-item">🏃 Sports</div>
+          <div class="cn-item">📚 Learning</div>
+          <div class="cn-item">🎮 Gaming</div>
+          <div class="cn-item">🍳 Food</div>
+        </div>
+        <div style="padding:8px 0;">
+          <div class="sidebar-label">Subscribed channels</div>
+          <div class="cn-item">🎨 Miriam Chen</div>
+          <div class="cn-item">🏃 Run Club Hamburg</div>
+          <div class="cn-item">🎵 Ryan Park</div>
+          <div class="cn-item">📸 Lena Bruns</div>
+        </div>
+      </div>
+
+      <!-- Main browse + player -->
+      <div class="video-main">
+        <div class="video-browse">
+          <div style="font-size:14px;font-weight:600;margin-bottom:12px;">From your subscriptions</div>
+          <div class="video-grid">
+            <div class="video-card">
+              <div class="video-thumb playing" style="background:linear-gradient(135deg,#2d1b69,#11998e);">
+                🎨
+                <div class="video-duration">18:42</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Designing for Emotional States — Full Talk + Research</div>
+                <div class="video-channel">Miriam Chen <span class="video-source">· miriam.ntogether.com</span></div>
+                <div class="video-meta-row"><span>2.1k views</span><span>·</span><span>Yesterday</span></div>
+              </div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb" style="background:linear-gradient(135deg,#c94b4b,#4b134f);">
+                🎵
+                <div class="video-duration">4:22</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Ordinary Hours — Official Music Video</div>
+                <div class="video-channel">Ryan Park <span class="video-source">· ryan.ntogether.com</span></div>
+                <div class="video-meta-row"><span>842 views</span><span>·</span><span>2 days ago</span></div>
+              </div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb" style="background:linear-gradient(135deg,#0f3460,#16213e);">
+                🏃
+                <div class="video-duration">22:10</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Week 8 Training Run — Alster Loop</div>
+                <div class="video-channel">Run Club Hamburg <span class="video-source">· runclub.ntogether.com</span></div>
+                <div class="video-meta-row"><span>312 views</span><span>·</span><span>3 days ago</span></div>
+              </div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb" style="background:linear-gradient(135deg,#373b44,#4286f4);">
+                📸
+                <div class="video-duration">11:30</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Golden Hour — How I shot and why I didn't edit</div>
+                <div class="video-channel">Lena Bruns <span class="video-source">· lena.ntogether.com</span></div>
+                <div class="video-meta-row"><span>1.4k views</span><span>·</span><span>4 days ago</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Trending in design</div>
+          <div class="video-grid">
+            <div class="video-card">
+              <div class="video-thumb" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
+                🖥
+                <div class="video-duration">34:08</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Building a Design System from Scratch in 2026</div>
+                <div class="video-channel">Freya Andersen <span class="video-source">· freya.ntogether.com</span></div>
+                <div class="video-meta-row"><span>8.2k views</span><span>·</span><span>1 week ago</span></div>
+              </div>
+            </div>
+            <div class="video-card">
+              <div class="video-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+                ✏️
+                <div class="video-duration">7:45</div>
+                <div class="video-play-overlay"><div class="vpo-btn">▶</div></div>
+              </div>
+              <div class="video-info">
+                <div class="video-title">Why I stopped using Figma auto-layout for this</div>
+                <div class="video-channel">Thomas Brauer <span class="video-source">· thomas.ntogether.com</span></div>
+                <div class="video-meta-row"><span>3.8k views</span><span>·</span><span>5 days ago</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video player panel -->
+        <div class="video-player-wrap">
+          <div class="vp-embed">🎨</div>
+          <div class="vp-controls">
+            <div class="vp-progress"><div class="vp-fill"></div></div>
+            <div class="vp-btns">
+              <span>⏮</span>
+              <span style="background:var(--accent);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">▶</span>
+              <span>⏭</span>
+              <span>🔊</span>
+              <span class="vp-time">5:14 / 18:42</span>
+              <span style="margin-left:4px;">⛶</span>
+            </div>
+          </div>
+          <div class="vp-info">
+            <div class="vp-title">Designing for Emotional States — Full Talk + Research</div>
+            <div class="vp-channel-row">
+              <div class="vp-av">M</div>
+              <div>
+                <div class="vp-channel" style="font-weight:500;color:var(--text);">Miriam Chen</div>
+                <div class="vp-channel">2.1k views · Yesterday · <a style="color:var(--accent);">miriam.ntogether.com</a></div>
+              </div>
+            </div>
+            <div class="vp-actions">
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">❤️ 214</div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">💬 38</div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">🔄 Share</div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">🔖</div>
+            </div>
+            <div class="vp-desc">Full research and slides from my talk at the UX Hamburg conference, April 20. The core argument: we design for task completion when we should be designing for emotional state transitions…</div>
+
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);margin:14px 0 8px;">Up next</div>
+            <div class="up-next">
+              <div class="un-item">
+                <div class="un-thumb" style="background:linear-gradient(135deg,#c94b4b,#4b134f);">🎵</div>
+                <div class="un-info">
+                  <div class="un-title">Ordinary Hours — Official Music Video</div>
+                  <div class="un-channel">Ryan Park · 4:22</div>
+                </div>
+              </div>
+              <div class="un-item">
+                <div class="un-thumb" style="background:linear-gradient(135deg,#0f3460,#16213e);">🏃</div>
+                <div class="un-info">
+                  <div class="un-title">Week 8 Training Run — Alster Loop</div>
+                  <div class="un-channel">Run Club Hamburg · 22:10</div>
+                </div>
+              </div>
+              <div class="un-item">
+                <div class="un-thumb" style="background:linear-gradient(135deg,#373b44,#4286f4);">📸</div>
+                <div class="un-info">
+                  <div class="un-title">Golden Hour — How I shot it</div>
+                  <div class="un-channel">Lena Bruns · 11:30</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

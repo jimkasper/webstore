@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Editor — BUILDSPACE</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body { overflow: hidden; }
+
+/* ── Top toolbar ── */
+.editor-toolbar {
+  height: 48px; background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+}
+.editor-logo { font-weight: 800; font-size: 15px; color: var(--accent); letter-spacing: -.5px; margin-right: 8px; }
+.page-selector {
+  display: flex; align-items: center; gap: 6px; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; cursor: pointer; background: var(--surface);
+}
+.page-selector span { color: var(--text-3); font-size: 11px; }
+.toolbar-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+.device-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.device-btn { padding: 5px 10px; font-size: 12px; cursor: pointer; background: var(--surface); color: var(--text-2); border: none; font-family: var(--font); }
+.device-btn.active { background: var(--surface-2); color: var(--text); }
+.toolbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.theme-pill {
+  display: flex; align-items: center; gap: 6px; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 12px; cursor: pointer; background: var(--surface);
+}
+.theme-swatch { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #F8F5F0, #1A1A1A); border: 1px solid var(--border); }
+
+/* ── Editor layout ── */
+.editor-shell { display: flex; height: 100vh; padding-top: 48px; }
+
+/* ── Left panel ── */
+.left-panel {
+  width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+}
+.panel-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.panel-tab {
+  flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 500;
+  color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent;
+}
+.panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.pages-list { padding: 8px 0; overflow-y: auto; flex: 1; }
+.page-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  cursor: pointer; font-size: 13px; color: var(--text-2); border-radius: 0;
+}
+.page-item:hover { background: var(--surface-2); color: var(--text); }
+.page-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.page-item .page-icon { font-size: 14px; }
+.page-item .page-actions { margin-left: auto; display: none; gap: 2px; }
+.page-item:hover .page-actions { display: flex; }
+.page-add { display: flex; align-items: center; gap: 6px; padding: 8px 12px; color: var(--text-3); font-size: 12px; cursor: pointer; }
+.page-add:hover { color: var(--accent); }
+
+.blocks-library { padding: 8px 0; overflow-y: auto; flex: 1; }
+.block-cat { margin-bottom: 4px; }
+.block-cat-header {
+  display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+  font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: .05em; cursor: pointer;
+}
+.block-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px 12px 8px; }
+.block-chip {
+  padding: 8px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 11px; text-align: center; cursor: grab; background: var(--surface);
+  color: var(--text-2); transition: all .15s;
+}
+.block-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.block-chip .block-icon { font-size: 16px; display: block; margin-bottom: 3px; }
+
+/* ── Canvas ── */
+.canvas-area {
+  flex: 1; background: #ECEAE6; overflow-y: auto; display: flex; flex-direction: column; align-items: center;
+  padding: 32px 24px;
+}
+.canvas-label { font-size: 11px; color: #A0A0A0; margin-bottom: 16px; text-align: center; }
+.canvas-frame {
+  width: 100%; max-width: 900px; background: var(--surface); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); overflow: hidden; min-height: 700px;
+}
+
+/* SPACE preview content */
+.space-topbar {
+  height: 56px; background: #1A1714; display: flex; align-items: center;
+  padding: 0 24px; gap: 16px;
+}
+.space-nav-logo { color: white; font-weight: 700; font-size: 16px; }
+.space-nav-links { display: flex; gap: 20px; }
+.space-nav-link { color: rgba(255,255,255,.6); font-size: 13px; font-weight: 500; cursor: pointer; }
+.space-nav-link.active { color: white; }
+.space-nav-right { margin-left: auto; display: flex; gap: 8px; }
+
+/* Hero block — selected */
+.block-wrapper { position: relative; }
+.block-wrapper.selected::before {
+  content: ''; position: absolute; inset: -2px; border: 2px solid var(--accent);
+  border-radius: var(--radius-sm); pointer-events: none; z-index: 10;
+}
+.block-wrapper.selected .block-label {
+  position: absolute; top: -24px; left: 0; background: var(--accent); color: white;
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 3px 3px 0 0; z-index: 11;
+}
+.block-drag-handle {
+  position: absolute; right: -36px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.drag-btn {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; cursor: pointer;
+}
+
+.hero-block {
+  background: linear-gradient(135deg, #1A1714 0%, #2C2018 100%);
+  padding: 80px 48px; text-align: center; position: relative;
+}
+.hero-block h1 { font-family: var(--font-serif); font-size: 42px; color: white; margin-bottom: 16px; line-height: 1.2; }
+.hero-block p { color: rgba(255,255,255,.65); font-size: 16px; margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.hero-btns { display: flex; gap: 12px; justify-content: center; }
+.hero-btn-primary { background: white; color: #1A1714; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; }
+.hero-btn-outline { border: 1px solid rgba(255,255,255,.3); color: white; padding: 12px 24px; border-radius: 6px; font-size: 14px; }
+
+.block-gap {
+  border: 2px dashed #D0CCC6; border-radius: var(--radius-sm);
+  margin: 0 24px; height: 60px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); font-size: 12px; cursor: pointer;
+}
+.block-gap:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+.feature-block { padding: 48px 48px; }
+.feature-block h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+.feature-block .subtitle { text-align: center; color: var(--text-2); margin-bottom: 32px; }
+.feature-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.feature-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.feature-card .icon { font-size: 24px; margin-bottom: 10px; }
+.feature-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.feature-card p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+.post-feed-block { padding: 32px 48px; background: var(--bg); }
+.post-feed-block h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+.post-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.post-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--text-3); font-size: 12px; }
+.post-preview h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.post-preview p { font-size: 13px; color: var(--text-2); }
+
+/* ── Right panel ── */
+.right-panel {
+  width: 272px; background: var(--surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+}
+.right-panel-header {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+}
+.right-panel-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.right-panel-tab { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; }
+.right-panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.right-panel-body { padding: 14px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+.prop-group { display: flex; flex-direction: column; gap: 8px; }
+.prop-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+.prop-row { display: flex; gap: 8px; }
+.prop-row .input { flex: 1; }
+
+.color-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
+.color-swatch.active { border-color: var(--accent); }
+
+.align-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.align-btn { flex: 1; padding: 6px; text-align: center; font-size: 13px; cursor: pointer; background: var(--surface); border: none; font-family: var(--font); color: var(--text-2); }
+.align-btn.active { background: var(--surface-2); color: var(--text); }
+
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider { flex: 1; height: 4px; background: var(--border); border-radius: 2px; appearance: none; }
+.slider-val { font-size: 12px; color: var(--text-2); min-width: 32px; text-align: right; }
+input[type=range] { -webkit-appearance: none; appearance: none; background: var(--border); border-radius: 2px; height: 4px; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="editor-toolbar">
+  <div class="editor-logo">nTogether</div>
+  <div class="toolbar-sep"></div>
+  <div class="page-selector">📄 Home <span>▾</span></div>
+  <div class="btn btn-ghost btn-sm">+ Add Page</div>
+  <div class="toolbar-sep"></div>
+  <div class="device-group">
+    <div class="device-btn active">🖥 Desktop</div>
+    <div class="device-btn">📱 Mobile</div>
+  </div>
+  <div class="toolbar-actions">
+    <div class="theme-pill">
+      <div class="theme-swatch"></div>
+      Ivory <span style="color:var(--text-3)">▾</span>
+    </div>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-ghost btn-sm">👁 Preview</button>
+    <button class="btn btn-outline btn-sm">Save draft</button>
+    <button class="btn btn-primary btn-sm">Publish</button>
+  </div>
+</div>
+
+<div class="editor-shell">
+
+  <!-- Left panel -->
+  <div class="left-panel">
+    <div class="panel-tabs">
+      <div class="panel-tab active">Pages</div>
+      <div class="panel-tab">Blocks</div>
+    </div>
+
+    <div class="pages-list">
+      <div class="page-item active">
+        <span class="page-icon">🏠</span> Home
+        <div class="page-actions">
+          <div class="btn btn-ghost btn-icon" style="font-size:12px">⋯</div>
+        </div>
+      </div>
+      <div class="page-item">
+        <span class="page-icon">👤</span> About
+        <div class="page-actions"><div class="btn btn-ghost btn-icon" style="font-size:12px">⋯</div></div>
+      </div>
+      <div class="page-item">
+        <span class="page-icon">📬</span> Contact
+        <div class="page-actions"><div class="btn btn-ghost btn-icon" style="font-size:12px">⋯</div></div>
+      </div>
+      <div class="page-item">
+        <span class="page-icon">🖼</span> Gallery
+        <div class="page-actions"><div class="btn btn-ghost btn-icon" style="font-size:12px">⋯</div></div>
+      </div>
+      <div class="page-item">
+        <span class="page-icon">📝</span> Blog
+        <div class="page-actions"><div class="btn btn-ghost btn-icon" style="font-size:12px">⋯</div></div>
+      </div>
+      <div class="divider" style="margin:8px 0"></div>
+      <div class="page-add">+ Add page</div>
+    </div>
+
+    <div class="divider" style="margin:0"></div>
+
+    <div class="sidebar-label" style="padding:12px 14px 8px">Block Library</div>
+    <div class="blocks-library">
+      <div class="block-cat">
+        <div class="block-cat-header">▾ Content</div>
+        <div class="block-grid">
+          <div class="block-chip"><span class="block-icon">🖼</span>Hero</div>
+          <div class="block-chip"><span class="block-icon">T</span>Text</div>
+          <div class="block-chip"><span class="block-icon">📷</span>Image</div>
+          <div class="block-chip"><span class="block-icon">▶️</span>Video</div>
+          <div class="block-chip"><span class="block-icon">🃏</span>Cards</div>
+          <div class="block-chip"><span class="block-icon">❝</span>Quotes</div>
+        </div>
+      </div>
+      <div class="block-cat">
+        <div class="block-cat-header">▾ Dynamic</div>
+        <div class="block-grid">
+          <div class="block-chip"><span class="block-icon">📰</span>Post Feed</div>
+          <div class="block-chip"><span class="block-icon">📅</span>Events</div>
+          <div class="block-chip"><span class="block-icon">📊</span>Poll</div>
+          <div class="block-chip"><span class="block-icon">✅</span>Lists</div>
+        </div>
+      </div>
+      <div class="block-cat">
+        <div class="block-cat-header">▾ Layout</div>
+        <div class="block-grid">
+          <div class="block-chip"><span class="block-icon">▦</span>Columns</div>
+          <div class="block-chip"><span class="block-icon">—</span>Divider</div>
+          <div class="block-chip"><span class="block-icon">↔</span>Spacer</div>
+          <div class="block-chip"><span class="block-icon">📋</span>Grid</div>
+        </div>
+      </div>
+      <div class="block-cat">
+        <div class="block-cat-header">▾ Interactive</div>
+        <div class="block-grid">
+          <div class="block-chip"><span class="block-icon">✉️</span>Form</div>
+          <div class="block-chip"><span class="block-icon">📧</span>Newsletter</div>
+          <div class="block-chip"><span class="block-icon">🗺</span>Map</div>
+          <div class="block-chip"><span class="block-icon">💬</span>Social</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-area">
+    <div class="canvas-label">✦ Drag blocks from the library onto the page &nbsp;·&nbsp; Click any block to edit</div>
+
+    <div class="canvas-frame">
+      <!-- SPACE nav -->
+      <div class="space-topbar">
+        <div class="space-nav-logo">Alex Rivera</div>
+        <div class="space-nav-links">
+          <div class="space-nav-link active">Home</div>
+          <div class="space-nav-link">About</div>
+          <div class="space-nav-link">Contact</div>
+          <div class="space-nav-link">Gallery</div>
+          <div class="space-nav-link">Blog</div>
+        </div>
+        <div class="space-nav-right">
+          <div style="background:rgba(255,255,255,.1);color:white;padding:5px 14px;border-radius:4px;font-size:12px;cursor:pointer;">Follow</div>
+        </div>
+      </div>
+
+      <!-- Hero block (selected) -->
+      <div class="block-wrapper selected" style="position:relative">
+        <div class="block-label">Hero</div>
+        <div class="hero-block">
+          <h1>Writer & Creative Director</h1>
+          <p>I write about design, technology, and the human experience. Based in New York, working everywhere.</p>
+          <div class="hero-btns">
+            <div class="hero-btn-primary">Read my work</div>
+            <div class="hero-btn-outline">Get in touch</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drop zone -->
+      <div class="block-gap" style="margin-top:12px">+ Drop a block here</div>
+
+      <!-- Feature cards block -->
+      <div class="block-wrapper" style="margin:0">
+        <div class="feature-block">
+          <h2>What I do</h2>
+          <p class="subtitle">A little bit of everything, done carefully.</p>
+          <div class="feature-cards">
+            <div class="feature-card">
+              <div class="icon">✍️</div>
+              <h3>Writing</h3>
+              <p>Essays, journalism, and long-form narrative for publications and brands.</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon">🎨</div>
+              <h3>Creative Direction</h3>
+              <p>Visual identity, editorial strategy, and campaign concepting.</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon">🎤</div>
+              <h3>Speaking</h3>
+              <p>Keynotes and panels on creativity, culture, and the future of media.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drop zone -->
+      <div class="block-gap">+ Drop a block here</div>
+
+      <!-- Post feed block -->
+      <div class="block-wrapper" style="margin:12px 0 0">
+        <div class="post-feed-block">
+          <h2>Recent writing</h2>
+          <div class="post-preview">
+            <div class="post-meta">📝 Essay &nbsp;·&nbsp; Apr 18, 2026</div>
+            <h3>The quiet return of long-form reading</h3>
+            <p>Why readers are migrating back to depth, and what it means for writers who never left.</p>
+          </div>
+          <div class="post-preview">
+            <div class="post-meta">💡 Opinion &nbsp;·&nbsp; Apr 9, 2026</div>
+            <h3>Design systems are not a creative shortcut</h3>
+            <p>A defence of creative thinking inside constrained systems.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+    <div class="right-panel-header">
+      <span>🖼</span> Hero Block
+    </div>
+    <div class="right-panel-tabs">
+      <div class="right-panel-tab active">Content</div>
+      <div class="right-panel-tab">Style</div>
+      <div class="right-panel-tab">Advanced</div>
+    </div>
+    <div class="right-panel-body">
+
+      <div class="prop-group">
+        <div class="prop-label">Heading</div>
+        <input class="input" value="Writer & Creative Director">
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Subtext</div>
+        <textarea class="input textarea" style="min-height:72px">I write about design, technology, and the human experience. Based in New York, working everywhere.</textarea>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Primary button</div>
+        <input class="input" value="Read my work">
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Secondary button</div>
+        <input class="input" value="Get in touch">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="prop-group">
+        <div class="prop-label">Background</div>
+        <div class="color-row">
+          <div class="color-swatch active" style="background:#1A1714"></div>
+          <div class="color-swatch" style="background:#0F1923"></div>
+          <div class="color-swatch" style="background:#120E0A"></div>
+          <div class="color-swatch" style="background:#1C3A2A"></div>
+          <div class="color-swatch" style="background:linear-gradient(135deg,#667eea,#764ba2)"></div>
+          <div class="color-swatch" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></div>
+        </div>
+        <input class="input" value="#1A1714" style="margin-top:6px">
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Text alignment</div>
+        <div class="align-group">
+          <div class="align-btn">≡</div>
+          <div class="align-btn active">≡</div>
+          <div class="align-btn">≡</div>
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Padding (top / bottom)</div>
+        <div class="prop-row">
+          <input class="input" value="80px" style="text-align:center">
+          <input class="input" value="80px" style="text-align:center">
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-label">Background image</div>
+        <div class="btn btn-outline" style="width:100%;justify-content:center;font-size:12px;">📷 Upload image</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

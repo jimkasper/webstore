@@ -1,0 +1,42 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Binaries
+services/engine/engine
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node / pnpm
+node_modules/
+dist/
+.pnpm-store/
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# sqlc generated (committed intentionally — only listed here as reminder)
+# services/engine/db/gen/  ← DO commit this
+
+# Air hot-reload
+tmp/
+
+# Docker volumes (local dev)
+pgdata/
+
+# Logs
+*.log

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diet — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.diet-sidebar { width: 220px; }
+.macro-ring { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#2563EB 0% 42%, #16A34A 42% 68%, #D97706 68% 82%, var(--border) 82% 100%); margin: 0 auto; display: flex; align-items: center; justify-content: center; position: relative; }
+.macro-ring-inner { width: 80px; height: 80px; border-radius: 50%; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.macro-cal { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1; }
+.macro-cal-label { font-size: 10px; color: var(--text-3); }
+.macro-legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.meal-section { margin-bottom: 24px; }
+.meal-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.meal-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.meal-cals { font-size: 12px; color: var(--text-3); }
+.food-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.food-name { flex: 1; font-size: 13px; color: var(--text); }
+.food-portion { font-size: 12px; color: var(--text-3); }
+.food-macros { display: flex; gap: 8px; font-size: 11px; }
+.macro-p { color: #2563EB; }
+.macro-c { color: var(--green); }
+.macro-f { color: var(--amber); }
+.food-cal { font-size: 12px; font-weight: 500; color: var(--text); width: 48px; text-align: right; }
+.add-food-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; color: var(--text-3); font-size: 12px; cursor: pointer; }
+.add-food-row:hover { color: var(--accent); }
+
+.target-bar { margin-bottom: 6px; }
+.target-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.target-label { font-size: 12px; color: var(--text-2); width: 60px; }
+.target-val { font-size: 12px; font-weight: 500; color: var(--text); width: 40px; text-align: right; }
+.target-max { font-size: 11px; color: var(--text-3); width: 40px; text-align: right; }
+
+.water-row { display: flex; gap: 6px; align-items: center; padding: 12px 14px; }
+.water-cup { width: 28px; height: 28px; border-radius: 4px; border: 2px solid #0891B2; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
+.water-cup.filled { background: #CFFAFE; border-color: #0891B2; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🥗</span>
+      <div class="topbar-title">Diet</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">← Apr 23</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Today</div>
+      <div class="btn btn-ghost btn-sm">Apr 25 →</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Log</div>
+      <div class="btn btn-ghost btn-sm">Trends</div>
+      <div class="btn btn-ghost btn-sm">Recipes</div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm">+ Log food</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar: daily summary -->
+      <div class="sidebar diet-sidebar">
+        <div style="padding:16px 14px 8px;border-bottom:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:12px;">TODAY'S SUMMARY</div>
+          <div class="macro-ring">
+            <div class="macro-ring-inner">
+              <div class="macro-cal">1,420</div>
+              <div class="macro-cal-label">/ 2,000 kcal</div>
+            </div>
+          </div>
+          <div class="macro-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2563EB;"></div> Protein 84g</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#16A34A;"></div> Carbs 142g</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#D97706;"></div> Fat 48g</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--border);"></div> Remaining</div>
+          </div>
+        </div>
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:10px;">MACROS</div>
+          <div class="target-bar">
+            <div class="target-row">
+              <span class="target-label">Protein</span>
+              <div style="flex:1;"><div class="progress"><div class="progress-fill" style="width:70%;"></div></div></div>
+              <span class="target-val">84g</span><span class="target-max">/120g</span>
+            </div>
+            <div class="target-row">
+              <span class="target-label">Carbs</span>
+              <div style="flex:1;"><div class="progress progress-green"><div class="progress-fill" style="width:57%;"></div></div></div>
+              <span class="target-val">142g</span><span class="target-max">/250g</span>
+            </div>
+            <div class="target-row">
+              <span class="target-label">Fat</span>
+              <div style="flex:1;"><div class="progress"><div class="progress-fill" style="width:69%;background:var(--amber);"></div></div></div>
+              <span class="target-val">48g</span><span class="target-max">/70g</span>
+            </div>
+            <div class="target-row">
+              <span class="target-label">Fibre</span>
+              <div style="flex:1;"><div class="progress progress-green"><div class="progress-fill" style="width:48%;"></div></div></div>
+              <span class="target-val">12g</span><span class="target-max">/25g</span>
+            </div>
+          </div>
+        </div>
+        <div style="border-bottom:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);padding:12px 14px 6px;">WATER</div>
+          <div class="water-row">
+            <div class="water-cup filled">💧</div>
+            <div class="water-cup filled">💧</div>
+            <div class="water-cup filled">💧</div>
+            <div class="water-cup filled">💧</div>
+            <div class="water-cup filled">💧</div>
+            <div class="water-cup">+</div>
+            <div class="water-cup">+</div>
+            <div class="water-cup">+</div>
+          </div>
+          <div style="padding:0 14px 12px;font-size:11px;color:var(--text-3);">5 / 8 glasses · 1.25L</div>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px;">WELLBEING</div>
+          <div style="font-size:12px;color:var(--text-2);line-height:1.8;">
+            <div>😴 Sleep: 7h 20m</div>
+            <div>🏃 Exercise: 45 min</div>
+            <div>🧘 Stress: Low</div>
+            <div>⚡ Energy: Medium</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main food log -->
+      <div style="flex:1;overflow-y:auto;padding:20px 28px;background:var(--surface);">
+        <div style="font-size:13px;color:var(--text-3);margin-bottom:20px;">Thursday, April 24, 2026</div>
+
+        <!-- Breakfast -->
+        <div class="meal-section">
+          <div class="meal-header">
+            <div class="meal-name">☀️ Breakfast</div>
+            <div class="meal-cals">482 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Greek yogurt (full-fat)</div>
+            <div class="food-portion">200g</div>
+            <div class="food-macros"><span class="macro-p">P 20g</span><span class="macro-c">C 8g</span><span class="macro-f">F 10g</span></div>
+            <div class="food-cal">200 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Oats (rolled, dry)</div>
+            <div class="food-portion">60g</div>
+            <div class="food-macros"><span class="macro-p">P 8g</span><span class="macro-c">C 40g</span><span class="macro-f">F 4g</span></div>
+            <div class="food-cal">230 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Blueberries</div>
+            <div class="food-portion">80g</div>
+            <div class="food-macros"><span class="macro-p">P 1g</span><span class="macro-c">C 12g</span><span class="macro-f">F 0g</span></div>
+            <div class="food-cal">52 kcal</div>
+          </div>
+          <div class="add-food-row">+ Add to breakfast</div>
+        </div>
+
+        <!-- Lunch -->
+        <div class="meal-section">
+          <div class="meal-header">
+            <div class="meal-name">🌤 Lunch</div>
+            <div class="meal-cals">610 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Chicken breast (grilled)</div>
+            <div class="food-portion">150g</div>
+            <div class="food-macros"><span class="macro-p">P 45g</span><span class="macro-c">C 0g</span><span class="macro-f">F 6g</span></div>
+            <div class="food-cal">248 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Brown rice (cooked)</div>
+            <div class="food-portion">200g</div>
+            <div class="food-macros"><span class="macro-p">P 5g</span><span class="macro-c">C 46g</span><span class="macro-f">F 1g</span></div>
+            <div class="food-cal">218 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Mixed salad + olive oil dressing</div>
+            <div class="food-portion">1 serving</div>
+            <div class="food-macros"><span class="macro-p">P 2g</span><span class="macro-c">C 8g</span><span class="macro-f">F 14g</span></div>
+            <div class="food-cal">144 kcal</div>
+          </div>
+          <div class="add-food-row">+ Add to lunch</div>
+        </div>
+
+        <!-- Snacks -->
+        <div class="meal-section">
+          <div class="meal-header">
+            <div class="meal-name">🍎 Snacks</div>
+            <div class="meal-cals">328 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Apple</div>
+            <div class="food-portion">1 medium</div>
+            <div class="food-macros"><span class="macro-p">P 0g</span><span class="macro-c">C 25g</span><span class="macro-f">F 0g</span></div>
+            <div class="food-cal">95 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Almonds</div>
+            <div class="food-portion">30g</div>
+            <div class="food-macros"><span class="macro-p">P 6g</span><span class="macro-c">C 6g</span><span class="macro-f">F 14g</span></div>
+            <div class="food-cal">173 kcal</div>
+          </div>
+          <div class="food-item">
+            <div class="food-name">Black coffee</div>
+            <div class="food-portion">1 cup</div>
+            <div class="food-macros"><span class="macro-p">P 0g</span><span class="macro-c">C 0g</span><span class="macro-f">F 0g</span></div>
+            <div class="food-cal">5 kcal</div>
+          </div>
+          <div class="add-food-row">+ Add snack</div>
+        </div>
+
+        <!-- Dinner (not yet logged) -->
+        <div class="meal-section">
+          <div class="meal-header" style="opacity:.5;">
+            <div class="meal-name">🌙 Dinner</div>
+            <div class="meal-cals">0 kcal logged</div>
+          </div>
+          <div class="add-food-row">+ Log dinner</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

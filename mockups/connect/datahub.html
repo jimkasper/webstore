@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LENS — Data Hub</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.lens-sidebar { width: 220px; }
+.lens-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.lens-nav-item:hover { background: var(--surface-2); color: var(--text); }
+.lens-nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+.lens-main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.lens-content { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--bg); }
+
+/* SQL editor */
+.sql-editor-wrap { background: #1A1A1A; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
+.sql-toolbar { background: #2A2A2A; padding: 8px 14px; display: flex; align-items: center; gap: 8px; }
+.sql-toolbar-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+.sql-run-btn { background: var(--accent); color: white; border: none; padding: 4px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; margin-left: auto; }
+.sql-editor { padding: 14px 16px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.8; color: #E0E0E0; min-height: 100px; }
+.sql-kw { color: #569CD6; }
+.sql-fn { color: #DCDCAA; }
+.sql-str { color: #CE9178; }
+.sql-cm { color: #6A9955; }
+.sql-num { color: #B5CEA8; }
+
+/* Results table */
+.results-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
+.rt-header { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.rt-status { font-weight: 600; color: var(--green); }
+.rt-meta { color: var(--text-3); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; padding: 8px 14px; background: var(--surface-2); font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); }
+td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface-2); }
+.td-num { color: var(--accent); font-weight: 600; font-family: monospace; }
+.td-date { color: var(--text-3); font-family: monospace; }
+.td-tag { display: inline-flex; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.td-green { background: var(--green-bg); color: var(--green); }
+.td-amber { background: var(--amber-bg); color: var(--amber); }
+.td-blue { background: var(--accent-bg); color: var(--accent); }
+
+/* NL query */
+.nl-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.nl-icon { font-size: 18px; }
+.nl-input { flex: 1; border: none; outline: none; font-size: 14px; font-family: var(--font); color: var(--text); background: transparent; }
+.nl-input::placeholder { color: var(--text-3); }
+
+/* Chart placeholders */
+.chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 12px; }
+.chart-area { height: 140px; background: var(--surface-2); border-radius: var(--radius); display: flex; align-items: flex-end; gap: 4px; padding: 12px 8px 0; overflow: hidden; position: relative; }
+.bar { flex: 1; border-radius: 3px 3px 0 0; position: relative; cursor: pointer; transition: opacity .15s; }
+.bar:hover { opacity: .8; }
+.sparkline { height: 100%; position: relative; overflow: hidden; }
+.sparkline svg { position: absolute; bottom: 0; left: 0; }
+.chart-legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-3); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.schema-item { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12px; color: var(--text-2); cursor: pointer; }
+.schema-item:hover { color: var(--accent); }
+.schema-table { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); padding: 8px 0 4px; }
+.schema-col { padding-left: 16px; color: var(--text-3); }
+.schema-type { margin-left: auto; font-family: monospace; font-size: 10px; color: var(--text-3); }
+
+.saved-query { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.saved-query:hover .sq-name { color: var(--accent); }
+.sq-name { font-size: 12px; color: var(--text); flex: 1; }
+.sq-meta { font-size: 11px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon active" title="LENS">🔭</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🔭</span>
+      <div class="topbar-title">LENS</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Overview</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">SQL Explorer</div>
+      <div class="btn btn-ghost btn-sm">AI Query</div>
+      <div class="btn btn-ghost btn-sm">Charts</div>
+      <div class="btn btn-ghost btn-sm">Export</div>
+      <div class="topbar-right">
+        <div style="font-size:12px;color:var(--green);font-weight:500;">● Live · 14.2k events</div>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar: schema browser + saved queries -->
+      <div class="sidebar lens-sidebar">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Views</div>
+          <div class="lens-nav-item">📊 Overview</div>
+          <div class="lens-nav-item active">💻 SQL Explorer</div>
+          <div class="lens-nav-item">🤖 AI Query</div>
+          <div class="lens-nav-item">📈 Charts</div>
+          <div class="lens-nav-item">📤 Export</div>
+        </div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Schema</div>
+          <div class="schema-table">events</div>
+          <div class="schema-item schema-col"><span>id</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-item schema-col"><span>source</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-item schema-col"><span>type</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-item schema-col"><span>payload</span><span class="schema-type">JSON</span></div>
+          <div class="schema-item schema-col"><span>recorded_at</span><span class="schema-type">DATETIME</span></div>
+          <div class="schema-table">journal_entries</div>
+          <div class="schema-item schema-col"><span>entry_date</span><span class="schema-type">DATE</span></div>
+          <div class="schema-item schema-col"><span>day_rating</span><span class="schema-type">INTEGER</span></div>
+          <div class="schema-item schema-col"><span>day_mood</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-table">activity_reflections</div>
+          <div class="schema-item schema-col"><span>thumbs</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-item schema-col"><span>mood_after</span><span class="schema-type">JSON</span></div>
+          <div class="schema-item schema-col"><span>actual_mins</span><span class="schema-type">INTEGER</span></div>
+          <div class="schema-table">routines</div>
+          <div class="schema-item schema-col"><span>name</span><span class="schema-type">TEXT</span></div>
+          <div class="schema-item schema-col"><span>streak_days</span><span class="schema-type">INTEGER</span></div>
+          <div class="schema-table">transactions</div>
+          <div class="schema-item schema-col"><span>amount</span><span class="schema-type">REAL</span></div>
+          <div class="schema-item schema-col"><span>category</span><span class="schema-type">TEXT</span></div>
+        </div>
+        <div style="padding:8px 0;">
+          <div class="sidebar-label">Saved queries</div>
+          <div class="saved-query">
+            <div class="sq-name">Weekly mood by activity type</div>
+            <div class="sq-meta">2d ago</div>
+          </div>
+          <div class="saved-query">
+            <div class="sq-name">Monthly spend by category</div>
+            <div class="sq-meta">4d ago</div>
+          </div>
+          <div class="saved-query">
+            <div class="sq-name">Habit streaks this year</div>
+            <div class="sq-meta">1w ago</div>
+          </div>
+          <div class="saved-query">
+            <div class="sq-name">Sleep vs. productivity</div>
+            <div class="sq-meta">2w ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main LENS content -->
+      <div class="lens-main">
+        <div class="lens-content">
+
+          <!-- AI Natural Language bar -->
+          <div class="nl-bar">
+            <div class="nl-icon">🤖</div>
+            <input class="nl-input" value="Show me my average mood on days I ran vs. days I didn't, this month">
+            <div class="btn" style="background:var(--accent);color:white;border-radius:20px;font-size:12px;padding:5px 14px;">Ask AI →</div>
+          </div>
+
+          <!-- SQL Editor -->
+          <div class="sql-editor-wrap">
+            <div class="sql-toolbar">
+              <span class="sql-toolbar-label">SQL Explorer</span>
+              <span style="font-size:11px;color:#666;">alex_data.db</span>
+              <button class="sql-run-btn">▶ Run (⌘↩)</button>
+            </div>
+            <div class="sql-editor">
+              <span class="sql-cm">-- Mood on run days vs. non-run days (April 2026)</span><br>
+              <span class="sql-kw">SELECT</span><br>
+              &nbsp;&nbsp;<span class="sql-kw">CASE WHEN</span> r.actual_mins <span class="sql-kw">IS NOT NULL THEN</span> <span class="sql-str">'Run day'</span> <span class="sql-kw">ELSE</span> <span class="sql-str">'Rest day'</span> <span class="sql-kw">END</span> <span class="sql-kw">AS</span> day_type,<br>
+              &nbsp;&nbsp;<span class="sql-fn">AVG</span>(j.day_rating)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="sql-kw">AS</span> avg_day_rating,<br>
+              &nbsp;&nbsp;<span class="sql-fn">COUNT</span>(*)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="sql-kw">AS</span> days<br>
+              <span class="sql-kw">FROM</span> journal_entries j<br>
+              <span class="sql-kw">LEFT JOIN</span> activity_reflections r<br>
+              &nbsp;&nbsp;<span class="sql-kw">ON</span> <span class="sql-fn">DATE</span>(r.created_at) = j.entry_date<br>
+              &nbsp;&nbsp;<span class="sql-kw">AND</span> r.event_id <span class="sql-kw">IN</span> (<span class="sql-kw">SELECT</span> id <span class="sql-kw">FROM</span> events <span class="sql-kw">WHERE</span> type_tag = <span class="sql-str">'exercise'</span>)<br>
+              <span class="sql-kw">WHERE</span> j.entry_date &gt;= <span class="sql-str">'2026-04-01'</span><br>
+              <span class="sql-kw">GROUP BY</span> day_type<br>
+              <span class="sql-kw">ORDER BY</span> day_type;
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="results-table-wrap">
+            <div class="rt-header">
+              <span class="rt-status">✓ Query complete</span>
+              <span class="rt-meta">2 rows · 12ms · April 1–24, 2026</span>
+              <div class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:11px;">Export CSV</div>
+              <div class="btn btn-ghost btn-sm" style="font-size:11px;">📈 Chart</div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>day_type</th>
+                  <th>avg_day_rating</th>
+                  <th>days</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="td-tag td-green">Run day</span></td>
+                  <td class="td-num">4.3</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td><span class="td-tag td-amber">Rest day</span></td>
+                  <td class="td-num">3.7</td>
+                  <td>10</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- AI insight -->
+          <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:13px;color:#166534;line-height:1.7;">
+            🤖 <strong>AI insight:</strong> On days you ran, your average day rating was 4.3/5 — 0.6 points higher than rest days (3.7). This difference is statistically meaningful given your sample size. Running appears to be positively correlated with mood. <a style="color:var(--green);font-weight:600;">Ask a follow-up →</a>
+          </div>
+
+          <!-- Charts -->
+          <div class="chart-grid">
+            <div class="chart-card">
+              <div class="chart-title">📈 Day rating — last 30 days</div>
+              <div class="chart-area">
+                <div class="bar" style="height:60%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:80%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:100%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:75%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:40%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:85%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:90%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:55%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:70%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:95%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:100%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:80%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:75%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+                <div class="bar" style="height:85%;background:var(--accent-bg);border-top:2px solid var(--accent);"></div>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div> Day rating (avg 4.1)</div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">💳 Spending by category — April</div>
+              <div class="chart-area" style="align-items:center;justify-content:center;flex-direction:column;gap:0;padding:0;">
+                <div style="width:120px;height:120px;border-radius:50%;background:conic-gradient(#2563EB 0% 32%,#16A34A 32% 54%,#D97706 54% 71%,#7C3AED 71% 84%,#A09890 84% 100%);display:flex;align-items:center;justify-content:center;">
+                  <div style="width:72px;height:72px;background:var(--surface-2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text);">$2,143</div>
+                </div>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#2563EB;"></div>Housing</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#16A34A;"></div>Food</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#D97706;"></div>Health</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#7C3AED;"></div>Entertainment</div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">🏃 Habit streaks</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>💧 Water</span><span style="color:var(--amber);font-weight:600;">🔥 21 days</span></div>
+                  <div class="progress progress-green"><div class="progress-fill" style="width:87%;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>🏃 Run</span><span style="color:var(--amber);font-weight:600;">🔥 14 days</span></div>
+                  <div class="progress progress-green"><div class="progress-fill" style="width:58%;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>📖 Read</span><span style="color:var(--amber);font-weight:600;">🔥 5 days</span></div>
+                  <div class="progress"><div class="progress-fill" style="width:21%;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>🧘 Meditate</span><span style="color:var(--amber);font-weight:600;">🔥 3 days</span></div>
+                  <div class="progress"><div class="progress-fill" style="width:12%;"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">⏱ Time by activity type — this week</div>
+              <div class="chart-area" style="align-items:flex-end;">
+                <div class="bar" style="height:90%;background:#DBEAFE;border-top:2px solid var(--accent);" title="Work: 42h"></div>
+                <div class="bar" style="height:40%;background:#F0FDF4;border-top:2px solid var(--green);" title="Exercise: 5h"></div>
+                <div class="bar" style="height:25%;background:#EDE9FE;border-top:2px solid #7C3AED;" title="Learning: 3h"></div>
+                <div class="bar" style="height:30%;background:#FEF9C3;border-top:2px solid var(--amber);" title="Social: 4h"></div>
+                <div class="bar" style="height:15%;background:var(--surface-2);border-top:2px solid var(--text-3);" title="Other: 2h"></div>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div>Work 42h</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>Exercise 5h</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#7C3AED;"></div>Learning 3h</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>Social 4h</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data sources -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;">Connected data sources</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>📓</span><span>Journal</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>📅</span><span>Scheduler</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>🎯</span><span>Planner</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>🥗</span><span>Diet</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>💳</span><span>Financial</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>🤝</span><span>Agreement</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>🔬</span><span>Research</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span>🏠</span><span>SPACE</span><span style="color:var(--green);font-size:10px;margin-left:auto;">● Live</span></div>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-3);">All data is stored locally on your device. Nothing leaves without your explicit export.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

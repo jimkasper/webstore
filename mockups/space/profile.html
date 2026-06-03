@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Stoll — nTogether</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+.pinned-banner { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.featured-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.featured-tile { border-radius: var(--radius); overflow: hidden; background: var(--surface-2); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; border: 1px solid var(--border); }
+.friend-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.friend-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+.friend-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: white; }
+.friend-name { font-size: 11px; color: var(--text-2); text-align: center; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.badge-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.badge-label { font-size: 10px; color: var(--text-3); text-align: center; max-width: 48px; }
+</style>
+</head>
+<body>
+
+<div class="own-space-bar">
+  ✏️ This is your SPACE. <a href="../profile-editor.html" style="font-weight:600;text-decoration:underline;">Open BUILDSPACE</a> to edit it.
+  <span style="margin-left:auto;">Viewing as: <strong>Public</strong> · <a style="font-weight:600;text-decoration:underline;">Preview as visitor</a></span>
+</div>
+
+<!-- Site navigation -->
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl active">Wall</a>
+      <a class="snl">About</a>
+      <a class="snl">Media</a>
+      <a class="snl">Blog</a>
+      <a class="snl">Friends</a>
+      <a class="snl">Activity</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-outline btn-sm">💬 Message</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</nav>
+
+<!-- Cover + header -->
+<div class="space-cover">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding:0 40px;">
+    <div style="font-family:var(--font-serif);font-size:13px;color:rgba(255,255,255,.5);font-style:italic;">"Make something worth sharing."</div>
+  </div>
+  <div class="space-cover-edit">📷 Edit cover</div>
+</div>
+<div class="space-header">
+  <div class="space-header-inner">
+    <div class="space-avatar-wrap">
+      <div class="space-avatar">A</div>
+    </div>
+    <div class="space-identity">
+      <div class="space-name">Alex Stoll</div>
+      <div class="space-handle">@alex · Berlin, Germany (soon) · Member since 2025</div>
+      <div class="space-stats">
+        <div class="space-stat"><strong>842</strong> followers</div>
+        <div class="space-stat"><strong>214</strong> following</div>
+        <div class="space-stat"><strong>127</strong> posts</div>
+      </div>
+    </div>
+    <div class="space-actions">
+      <div class="btn btn-outline btn-sm">💬 Message</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+      <div class="btn btn-outline btn-sm">⋯</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page content -->
+<div class="space-page">
+  <!-- Main column -->
+  <div class="main-col">
+    <!-- Pinned post -->
+    <div class="post-card">
+      <div class="pinned-banner">📌 Pinned post</div>
+      <div class="post-header">
+        <div class="post-avatar">A</div>
+        <div class="post-meta">
+          <div class="post-author">Alex Stoll</div>
+          <div class="post-time">March 15, 2026</div>
+        </div>
+        <span class="tag tag-blue">Pinned</span>
+      </div>
+      <div class="post-body">
+        <strong>Hi, I'm Alex.</strong> Product designer and occasional writer. I use this SPACE to share work-in-progress thoughts, things I'm reading, and updates from life. If something resonates, say hi — I read every message.<br><br>
+        Currently: weighing a move to Berlin for a 6-month project. Documenting the decision in my journal.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <span class="tag tag-default">#design</span>
+        <span class="tag tag-default">#writing</span>
+        <span class="tag tag-default">#berlin</span>
+        <span class="tag tag-default">#life</span>
+      </div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 48</div>
+        <div class="post-action">💬 12 comments</div>
+        <div class="post-action">🔄 Repost</div>
+        <div class="post-action" style="margin-left:auto;">🔖</div>
+      </div>
+    </div>
+
+    <!-- Recent posts -->
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">A</div>
+        <div class="post-meta">
+          <div class="post-author">Alex Stoll</div>
+          <div class="post-time">Today at 9:12 AM</div>
+        </div>
+      </div>
+      <div class="post-body">
+        The quiet before everyone else wakes up is the only hour I feel like myself. Coffee right. No notifications. Just the city starting up outside the window.<br><br>
+        Working on the Berlin proposal today. Will know more by next week.
+      </div>
+      <div class="post-actions">
+        <div class="post-action liked">❤️ 24</div>
+        <div class="post-action">💬 3 comments</div>
+        <div class="post-action">🔄 Repost</div>
+        <div class="post-action" style="margin-left:auto;">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">A</div>
+        <div class="post-meta">
+          <div class="post-author">Alex Stoll</div>
+          <div class="post-time">Apr 22 · Shared from Blog</div>
+        </div>
+        <span class="tag tag-default">Blog post</span>
+      </div>
+      <div class="post-body">
+        <strong style="font-family:var(--font-serif);font-size:16px;">On making decisions under uncertainty</strong><br><br>
+        Three years ago I turned down a similar opportunity and have spent most of the time since wondering what if. The difference between decisions we regret and decisions we don't isn't the outcome — it's whether we were honest with ourselves at the time.
+      </div>
+      <div class="post-image">📝</div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 91</div>
+        <div class="post-action">💬 17 comments</div>
+        <div class="post-action">🔄 14 reposts</div>
+        <div class="post-action" style="margin-left:auto;">🔖</div>
+      </div>
+    </div>
+
+    <div class="post-card">
+      <div class="post-header">
+        <div class="post-avatar">A</div>
+        <div class="post-meta">
+          <div class="post-author">Alex Stoll</div>
+          <div class="post-time">Apr 20 · Conference</div>
+        </div>
+      </div>
+      <div class="post-body">
+        Day two of the UX conference. Best talk was from Miriam Chen on designing for emotional states rather than tasks. Really shifted how I'm thinking about the onboarding flow we're rebuilding at work.
+      </div>
+      <div class="post-image" style="height:180px;">📸</div>
+      <div class="post-actions">
+        <div class="post-action">❤️ 62</div>
+        <div class="post-action">💬 8 comments</div>
+        <div class="post-action">🔄 Repost</div>
+        <div class="post-action" style="margin-left:auto;">🔖</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="side-col">
+    <!-- About card -->
+    <div class="card">
+      <div class="card-title">About</div>
+      <div style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:12px;">
+        Product designer. Occasional writer. Early riser. Obsessively curious about decisions, systems, and why people do what they do.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-3);">
+        <div>📍 Hamburg, Germany</div>
+        <div>💼 Brandt & Co. — Product Design</div>
+        <div>🌐 <a style="color:var(--blue);">alex.ntogether.com</a></div>
+        <div>📅 Member since Feb 2025</div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:8px;">
+        <span class="tag tag-default">#design</span>
+        <span class="tag tag-default">#writing</span>
+        <span class="tag tag-default">#books</span>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="card">
+      <div class="card-title">Badges</div>
+      <div class="badge-row">
+        <div class="badge-item"><div class="badge-icon">🏅</div><div class="badge-label">Early member</div></div>
+        <div class="badge-item"><div class="badge-icon">✍️</div><div class="badge-label">100 posts</div></div>
+        <div class="badge-item"><div class="badge-icon">🌍</div><div class="badge-label">Global citizen</div></div>
+        <div class="badge-item"><div class="badge-icon">📚</div><div class="badge-label">Bookworm</div></div>
+        <div class="badge-item"><div class="badge-icon">🎙️</div><div class="badge-label">Storyteller</div></div>
+        <div class="badge-item"><div class="badge-icon">🔗</div><div class="badge-label">Connector</div></div>
+      </div>
+    </div>
+
+    <!-- Featured media -->
+    <div class="card">
+      <div class="card-title">Featured media</div>
+      <div class="featured-grid">
+        <div class="featured-tile">🌆</div>
+        <div class="featured-tile">☕</div>
+        <div class="featured-tile">📖</div>
+        <div class="featured-tile">🌿</div>
+      </div>
+      <div style="margin-top:10px;"><a style="font-size:12px;color:var(--blue);">View all media →</a></div>
+    </div>
+
+    <!-- Friends -->
+    <div class="card">
+      <div class="card-title">Friends <span style="font-weight:400;color:var(--text-3);">· 214</span></div>
+      <div class="friend-row">
+        <div class="friend-item"><div class="friend-avatar" style="background:#2563EB;">J</div><div class="friend-name">Jamie</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#16A34A;">L</div><div class="friend-name">Lena</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#7C3AED;">M</div><div class="friend-name">Miriam</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#D97706;">K</div><div class="friend-name">Kai</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#0891B2;">S</div><div class="friend-name">Sophie</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#DC2626;">R</div><div class="friend-name">Ryan</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#4B5563;">T</div><div class="friend-name">Tom</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#065F46;">E</div><div class="friend-name">Elena</div></div>
+        <div class="friend-item"><div class="friend-avatar" style="background:#9D174D;">F</div><div class="friend-name">Freya</div></div>
+      </div>
+      <div style="margin-top:12px;"><a style="font-size:12px;color:var(--blue);">See all friends →</a></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

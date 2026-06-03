@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music — CONNECT</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.connect-nav { width: 200px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+.cn-section { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.cn-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.cn-item:hover { background: var(--surface-2); color: var(--text); }
+.cn-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+.music-main { flex: 1; display: flex; overflow: hidden; }
+.music-browser { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.music-player-bar { height: 80px; border-top: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; padding: 0 24px; gap: 20px; flex-shrink: 0; }
+
+/* Track list */
+.track-header { display: grid; grid-template-columns: 40px 1fr 200px 80px 80px; gap: 8px; padding: 6px 12px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.track-row { display: grid; grid-template-columns: 40px 1fr 200px 80px 80px; gap: 8px; padding: 8px 12px; align-items: center; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+.track-row:hover { background: var(--surface-2); }
+.track-row.playing { background: var(--accent-bg); color: var(--accent); }
+.track-num { color: var(--text-3); font-size: 12px; text-align: center; }
+.track-num.playing { color: var(--accent); }
+.track-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track-art { width: 36px; height: 36px; border-radius: 4px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.track-title { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-artist { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-album { color: var(--text-3); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-plays { color: var(--text-3); font-size: 12px; }
+.track-dur { color: var(--text-3); font-size: 12px; text-align: right; }
+.track-actions { display: flex; gap: 4px; opacity: 0; }
+.track-row:hover .track-actions { opacity: 1; }
+
+/* Album grid */
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.album-card { cursor: pointer; }
+.album-art { width: 100%; aspect-ratio: 1; border-radius: var(--radius); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 8px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+.album-play-btn { position: absolute; bottom: 8px; right: 8px; width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; opacity: 0; transition: opacity .15s; }
+.album-card:hover .album-play-btn { opacity: 1; }
+.album-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.album-artist { font-size: 12px; color: var(--text-3); }
+.album-source { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+/* Player bar */
+.player-track { display: flex; align-items: center; gap: 10px; width: 240px; }
+.player-art { width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.player-info { flex: 1; min-width: 0; }
+.player-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-artist { font-size: 11px; color: var(--text-3); }
+.player-controls { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.player-btns { display: flex; align-items: center; gap: 16px; }
+.pb { font-size: 18px; cursor: pointer; color: var(--text-3); }
+.pb:hover { color: var(--text); }
+.pb.main { width: 36px; height: 36px; background: var(--text); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
+.progress-bar { width: 100%; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-3); }
+.pb-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
+.pb-fill { height: 100%; background: var(--text); border-radius: 2px; width: 35%; }
+.player-vol { display: flex; align-items: center; gap: 8px; width: 140px; font-size: 14px; }
+.vol-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+.vol-fill { height: 100%; background: var(--text); border-radius: 2px; width: 70%; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon active" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🔗</span>
+      <div class="topbar-title">CONNECT</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Feed</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">🎵 Music</div>
+      <div class="btn btn-ghost btn-sm">🎬 Video</div>
+      <div class="btn btn-ghost btn-sm">🎙 Podcasts</div>
+      <div class="btn btn-ghost btn-sm">Search</div>
+      <div class="topbar-right">
+        <input class="input" style="width:200px;font-size:12px;" placeholder="🔍 Search music…">
+      </div>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden;flex-direction:column;">
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <!-- CONNECT nav sidebar -->
+        <div class="connect-nav">
+          <div class="cn-section">
+            <div class="sidebar-label">Library</div>
+            <div class="cn-item active">🎵 All music</div>
+            <div class="cn-item">💿 Albums</div>
+            <div class="cn-item">🎤 Artists</div>
+            <div class="cn-item">🎶 Songs</div>
+            <div class="cn-item">📻 Radio</div>
+          </div>
+          <div class="cn-section">
+            <div class="sidebar-label">Your playlists</div>
+            <div class="cn-item">🌅 Morning focus</div>
+            <div class="cn-item">🏃 Running mix</div>
+            <div class="cn-item">🌙 Late night</div>
+            <div class="cn-item">💼 Deep work</div>
+            <div class="cn-item" style="color:var(--text-3);font-size:12px;padding-left:18px;">+ New playlist</div>
+          </div>
+          <div class="cn-section">
+            <div class="sidebar-label">From your network</div>
+            <div class="cn-item">🤝 Friends listening</div>
+            <div class="cn-item">⭐ Recommendations</div>
+            <div class="cn-item">🔥 Trending</div>
+          </div>
+        </div>
+
+        <!-- Music browser -->
+        <div class="music-main">
+          <div class="music-browser">
+            <!-- Hero section -->
+            <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;margin-bottom:28px;align-items:center;">
+              <div style="width:280px;height:280px;border-radius:var(--radius-lg);background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;align-items:center;justify-content:center;font-size:80px;border:1px solid var(--border);">🎵</div>
+              <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px;">Album · Playing now</div>
+                <div style="font-family:var(--font-serif);font-size:28px;font-weight:600;color:var(--text);margin-bottom:4px;">Sometimes I Sit and Think</div>
+                <div style="font-size:15px;color:var(--text-2);margin-bottom:4px;">Courtney Barnett</div>
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">2015 · 11 tracks · Hosted on <a style="color:var(--accent);">@courtneybarnett.ntogether.com</a></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div class="btn" style="background:var(--text);color:white;border-radius:20px;">▶ Play</div>
+                  <div class="btn" style="border:1.5px solid var(--border);border-radius:20px;">♡ Save</div>
+                  <div class="btn" style="border:1.5px solid var(--border);border-radius:20px;">⋯ More</div>
+                </div>
+                <div style="margin-top:16px;font-size:12px;color:var(--text-3);">
+                  Shared by <strong style="color:var(--text-2);">Lena Bruns</strong> · 3 of your connections saved this
+                </div>
+              </div>
+            </div>
+
+            <!-- Track list -->
+            <div style="margin-bottom:28px;">
+              <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Tracks</div>
+              <div class="track-header">
+                <div>#</div><div>Title</div><div>Album</div><div>Plays</div><div style="text-align:right;">Duration</div>
+              </div>
+              <div class="track-row playing">
+                <div class="track-num playing">▶</div>
+                <div class="track-info">
+                  <div class="track-art" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🎵</div>
+                  <div><div class="track-title">Elevator Operator</div><div class="track-artist" style="color:var(--accent);">Courtney Barnett</div></div>
+                </div>
+                <div class="track-album">Sometimes I Sit…</div>
+                <div class="track-plays">12.4k</div>
+                <div class="track-dur">3:16</div>
+              </div>
+              <div class="track-row">
+                <div class="track-num">2</div>
+                <div class="track-info">
+                  <div class="track-art">🎸</div>
+                  <div><div class="track-title">Pedestrian at Best</div><div class="track-artist">Courtney Barnett</div></div>
+                </div>
+                <div class="track-album">Sometimes I Sit…</div>
+                <div class="track-plays">9.8k</div>
+                <div class="track-dur">3:44</div>
+              </div>
+              <div class="track-row">
+                <div class="track-num">3</div>
+                <div class="track-info">
+                  <div class="track-art">🎶</div>
+                  <div><div class="track-title">An Illustration of Loneliness</div><div class="track-artist">Courtney Barnett</div></div>
+                </div>
+                <div class="track-album">Sometimes I Sit…</div>
+                <div class="track-plays">7.2k</div>
+                <div class="track-dur">4:12</div>
+              </div>
+              <div class="track-row">
+                <div class="track-num">4</div>
+                <div class="track-info">
+                  <div class="track-art">🎵</div>
+                  <div><div class="track-title">Small Poppies</div><div class="track-artist">Courtney Barnett</div></div>
+                </div>
+                <div class="track-album">Sometimes I Sit…</div>
+                <div class="track-plays">6.1k</div>
+                <div class="track-dur">6:08</div>
+              </div>
+              <div class="track-row">
+                <div class="track-num">5</div>
+                <div class="track-info">
+                  <div class="track-art">🎸</div>
+                  <div><div class="track-title">Depreston</div><div class="track-artist">Courtney Barnett</div></div>
+                </div>
+                <div class="track-album">Sometimes I Sit…</div>
+                <div class="track-plays">8.9k</div>
+                <div class="track-dur">4:45</div>
+              </div>
+            </div>
+
+            <!-- More albums from network -->
+            <div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:14px;">From your network</div>
+              <div class="album-grid">
+                <div class="album-card">
+                  <div class="album-art" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);">🎵<div class="album-play-btn">▶</div></div>
+                  <div class="album-name">Fetch the Bolt Cutters</div>
+                  <div class="album-artist">Fiona Apple</div>
+                  <div class="album-source">@fiona.ntogether.com</div>
+                </div>
+                <div class="album-card">
+                  <div class="album-art" style="background:linear-gradient(135deg,#2d1b69,#11998e);">🎶<div class="album-play-btn">▶</div></div>
+                  <div class="album-name">GUTS</div>
+                  <div class="album-artist">Olivia Rodrigo</div>
+                  <div class="album-source">@olivia.ntogether.com</div>
+                </div>
+                <div class="album-card">
+                  <div class="album-art" style="background:linear-gradient(135deg,#c94b4b,#4b134f);">🎸<div class="album-play-btn">▶</div></div>
+                  <div class="album-name">The Record</div>
+                  <div class="album-artist">boygenius</div>
+                  <div class="album-source">@boygenius.ntogether.com</div>
+                </div>
+                <div class="album-card">
+                  <div class="album-art" style="background:linear-gradient(135deg,#373b44,#4286f4);">🥁<div class="album-play-btn">▶</div></div>
+                  <div class="album-name">In Rainbows</div>
+                  <div class="album-artist">Radiohead</div>
+                  <div class="album-source">@radiohead.ntogether.com</div>
+                </div>
+                <div class="album-card">
+                  <div class="album-art" style="background:linear-gradient(135deg,#f7971e,#ffd200);">🎹<div class="album-play-btn">▶</div></div>
+                  <div class="album-name">Renaissance</div>
+                  <div class="album-artist">Beyoncé</div>
+                  <div class="album-source">@beyonce.ntogether.com</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Player bar -->
+      <div class="music-player-bar">
+        <div class="player-track">
+          <div class="player-art">🎵</div>
+          <div class="player-info">
+            <div class="player-title">Elevator Operator</div>
+            <div class="player-artist">Courtney Barnett · <a style="color:var(--accent);font-size:11px;">@courtneybarnett</a></div>
+          </div>
+          <div style="font-size:18px;cursor:pointer;color:var(--text-3);">♡</div>
+        </div>
+        <div class="player-controls">
+          <div class="player-btns">
+            <div class="pb">⇄</div>
+            <div class="pb">⏮</div>
+            <div class="pb main">▶</div>
+            <div class="pb">⏭</div>
+            <div class="pb">↻</div>
+          </div>
+          <div class="progress-bar">
+            <span>1:08</span>
+            <div class="pb-track"><div class="pb-fill"></div></div>
+            <span>3:16</span>
+          </div>
+        </div>
+        <div class="player-vol">
+          <span style="font-size:14px;">🔊</span>
+          <div class="vol-track"><div class="vol-fill"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

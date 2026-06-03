@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Stoll — Friends</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+.friends-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.fr-tab { padding: 8px 18px; font-size: 13px; font-weight: 500; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; }
+.fr-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.fr-tab:hover { color: var(--text); }
+
+.friend-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.friend-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; text-align: center; cursor: pointer; transition: box-shadow .15s; }
+.friend-card:hover { box-shadow: var(--shadow); }
+.fc-avatar { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: white; margin: 0 auto 10px; }
+.fc-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.fc-handle { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+.fc-bio { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; min-height: 36px; }
+.fc-stats { display: flex; justify-content: center; gap: 16px; font-size: 11px; color: var(--text-3); margin-bottom: 10px; }
+.fc-stats strong { color: var(--text); font-weight: 600; }
+.fc-mutual { font-size: 11px; color: var(--text-3); margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.fc-actions { display: flex; gap: 6px; justify-content: center; }
+
+.suggest-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.sc-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: white; flex-shrink: 0; }
+.sc-info { flex: 1; }
+.sc-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.sc-reason { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl">Wall</a>
+      <a class="snl">About</a>
+      <a class="snl">Media</a>
+      <a class="snl">Blog</a>
+      <a class="snl active">Friends</a>
+      <a class="snl">Activity</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-outline btn-sm">💬 Message</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</nav>
+
+<div class="space-cover" style="height:120px;">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+</div>
+<div class="space-header">
+  <div class="space-header-inner">
+    <div class="space-avatar-wrap"><div class="space-avatar">A</div></div>
+    <div class="space-identity">
+      <div class="space-name">Alex Stoll — Connections</div>
+      <div class="space-handle">🤝 842 followers · 214 following</div>
+    </div>
+    <div class="space-actions">
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</div>
+
+<div class="space-page">
+  <div class="main-col">
+    <div class="friends-tabs">
+      <div class="fr-tab active">Following (214)</div>
+      <div class="fr-tab">Followers (842)</div>
+      <div class="fr-tab">Mutual (47)</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <input style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:20px;font-size:13px;font-family:var(--font);outline:none;" placeholder="🔍 Search connections…">
+      <select style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:var(--font);color:var(--text-2);background:var(--surface);">
+        <option>All</option>
+        <option>Recent</option>
+        <option>Mutual</option>
+      </select>
+    </div>
+
+    <div class="friend-grid">
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#2563EB;">J</div>
+        <div class="fc-name">Jamie Okafor</div>
+        <div class="fc-handle">@jamie</div>
+        <div class="fc-bio">Designer and architect. Building things slowly.</div>
+        <div class="fc-stats"><span><strong>1.2k</strong> followers</span><span><strong>88</strong> posts</span></div>
+        <div class="fc-mutual">👥 You both follow 14 people</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+          <div class="btn btn-outline btn-sm">💬</div>
+        </div>
+      </div>
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#16A34A;">L</div>
+        <div class="fc-name">Lena Bruns</div>
+        <div class="fc-handle">@lena</div>
+        <div class="fc-bio">Photographer & filmmaker. Hamburg → everywhere.</div>
+        <div class="fc-stats"><span><strong>3.4k</strong> followers</span><span><strong>342</strong> posts</span></div>
+        <div class="fc-mutual">👥 You both follow 8 people</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+          <div class="btn btn-outline btn-sm">💬</div>
+        </div>
+      </div>
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#7C3AED;">M</div>
+        <div class="fc-name">Miriam Chen</div>
+        <div class="fc-handle">@miriam</div>
+        <div class="fc-bio">UX researcher. Writes about design + psychology.</div>
+        <div class="fc-stats"><span><strong>5.1k</strong> followers</span><span><strong>214</strong> posts</span></div>
+        <div class="fc-mutual">👥 You both follow 22 people</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+          <div class="btn btn-outline btn-sm">💬</div>
+        </div>
+      </div>
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#D97706;">K</div>
+        <div class="fc-name">Kai Hoffmann</div>
+        <div class="fc-handle">@kai</div>
+        <div class="fc-bio">Software engineer. Cycling. Building in public.</div>
+        <div class="fc-stats"><span><strong>628</strong> followers</span><span><strong>56</strong> posts</span></div>
+        <div class="fc-mutual">👥 You both follow 6 people</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+          <div class="btn btn-outline btn-sm">💬</div>
+        </div>
+      </div>
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#0891B2;">S</div>
+        <div class="fc-name">Sophie Keller</div>
+        <div class="fc-handle">@sophie</div>
+        <div class="fc-bio">Runs. Reads. Works in finance by day.</div>
+        <div class="fc-stats"><span><strong>410</strong> followers</span><span><strong>44</strong> posts</span></div>
+        <div class="fc-mutual">👥 You both follow 3 people</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+          <div class="btn btn-outline btn-sm">💬</div>
+        </div>
+      </div>
+      <div class="friend-card">
+        <div class="fc-avatar" style="background:#DC2626;">R</div>
+        <div class="fc-name">Ryan Park</div>
+        <div class="fc-handle">@ryan · mastodon.social</div>
+        <div class="fc-bio">Federated · Indie musician and producer.</div>
+        <div class="fc-stats"><span><strong>2.8k</strong> followers</span><span><strong>190</strong> posts</span></div>
+        <div class="fc-mutual">🌐 Federated account</div>
+        <div class="fc-actions">
+          <div class="btn btn-outline btn-sm">Following ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:16px;">
+      <div class="btn btn-outline">Load more (208)</div>
+    </div>
+  </div>
+
+  <div class="side-col">
+    <div class="card">
+      <div class="card-title">Suggested for you</div>
+      <div class="suggest-card">
+        <div class="sc-avatar" style="background:#065F46;">E</div>
+        <div class="sc-info">
+          <div class="sc-name">Elena Vasquez</div>
+          <div class="sc-reason">Followed by Lena and Miriam</div>
+        </div>
+        <div class="btn btn-dark btn-sm">Follow</div>
+      </div>
+      <div class="suggest-card">
+        <div class="sc-avatar" style="background:#9D174D;">F</div>
+        <div class="sc-info">
+          <div class="sc-name">Freya Andersen</div>
+          <div class="sc-reason">Design · 3 mutual connections</div>
+        </div>
+        <div class="btn btn-dark btn-sm">Follow</div>
+      </div>
+      <div class="suggest-card">
+        <div class="sc-avatar" style="background:#1E3A5F;">T</div>
+        <div class="sc-info">
+          <div class="sc-name">Thomas Brauer</div>
+          <div class="sc-reason">Works at Brandt & Co.</div>
+        </div>
+        <div class="btn btn-dark btn-sm">Follow</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Connection stats</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text-2);">
+        <div style="display:flex;justify-content:space-between;"><span>Followers</span><strong style="color:var(--text);">842</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>Following</span><strong style="color:var(--text);">214</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>Mutual</span><strong style="color:var(--text);">47</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>Federated</span><strong style="color:var(--text);">12</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>New this month</span><strong style="color:var(--green);">+34</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

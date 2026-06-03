@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONTACTS — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+/* ── Layout ─────────────────────────────────────────────── */
+.contacts-shell { display: flex; height: 100vh; overflow: hidden; }
+.c-sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.c-list    { width: 300px; background: var(--bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+.c-detail  { flex: 1; background: var(--surface); overflow-y: auto; }
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.c-sidebar-header { padding: 16px 16px 8px; }
+.c-search { width: 100%; padding: 7px 10px 7px 30px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23A09890' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 8px center no-repeat; outline: none; color: var(--text); }
+.c-search:focus { border-color: var(--accent); }
+
+.c-nav-section { padding: 8px 8px 4px; }
+.c-nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); padding: 0 8px; margin-bottom: 4px; }
+.c-nav-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-2); transition: background .12s, color .12s; }
+.c-nav-item:hover { background: var(--surface-2); color: var(--text); }
+.c-nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.c-nav-count { margin-left: auto; font-size: 11px; color: var(--text-3); font-weight: 500; }
+.c-nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.c-sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+.c-foot-btn { flex: 1; padding: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; text-align: center; transition: background .12s; }
+.c-foot-btn:hover { background: var(--border); color: var(--text); }
+
+/* ── Contact List ───────────────────────────────────────── */
+.c-list-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.c-list-title { font-weight: 600; font-size: 14px; }
+.c-list-add { width: 28px; height: 28px; background: var(--accent); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; line-height: 1; }
+
+.c-alpha-scroll { flex: 1; overflow-y: auto; }
+.c-alpha-group { }
+.c-alpha-header { padding: 6px 14px 4px; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; background: var(--bg); position: sticky; top: 0; }
+.c-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .1s; }
+.c-row:hover { background: var(--surface-2); }
+.c-row.selected { background: var(--accent-bg); }
+.c-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: var(--text-2); flex-shrink: 0; overflow: hidden; }
+.c-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.c-row-name { font-size: 13px; font-weight: 500; }
+.c-row-sub  { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.badge-platform { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--accent); background: var(--accent-bg); padding: 1px 5px; border-radius: 4px; }
+.badge-off { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--text-3); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+
+/* ── Detail Panel ───────────────────────────────────────── */
+.c-detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 8px; color: var(--text-3); font-size: 14px; }
+
+.c-detail-inner { padding: 32px 32px 48px; }
+.c-detail-top { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+.c-avatar-lg { width: 72px; height: 72px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; color: var(--text-2); flex-shrink: 0; border: 3px solid var(--surface); box-shadow: var(--shadow); }
+.c-detail-name { font-size: 22px; font-weight: 700; margin-bottom: 3px; }
+.c-detail-handle { font-size: 14px; color: var(--accent); margin-bottom: 10px; }
+.c-detail-handle.off { color: var(--text-3); }
+
+.c-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.c-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: background .12s; }
+.c-action-btn:hover { background: var(--surface-2); }
+.c-action-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.c-action-btn.primary:hover { background: #1d4ed8; }
+
+/* ── Tabs ───────────────────────────────────────────────── */
+.c-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.c-tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .12s; }
+.c-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.c-tab:hover { color: var(--text); }
+
+/* ── Detail fields ──────────────────────────────────────── */
+.c-field-group { margin-bottom: 20px; }
+.c-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); margin-bottom: 8px; }
+.c-field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
+.c-field-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+.c-field-val { color: var(--text); }
+.c-field-val a { color: var(--accent); }
+.c-field-muted { color: var(--text-3); }
+
+.c-note-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+.c-tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.c-tag { padding: 3px 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; color: var(--text-2); }
+
+.c-group-pill { padding: 3px 10px; background: var(--accent-bg); border-radius: 20px; font-size: 11px; color: var(--accent); font-weight: 500; }
+
+/* ── Activity timeline ──────────────────────────────────── */
+.c-activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.c-act-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.act-event { background: var(--accent-bg); }
+.act-journal { background: var(--green-bg); }
+.act-agreement { background: var(--amber-bg); }
+.act-message { background: #2E1065; }
+.c-act-body { font-size: 13px; }
+.c-act-body span { color: var(--text-2); }
+.c-act-time { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ── Mutual panel ───────────────────────────────────────── */
+.c-mutual-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 12px; }
+.c-mutual-card { text-align: center; cursor: pointer; }
+.c-mutual-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-2); margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--text-2); }
+.c-mutual-name { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── App view toggle bar ─────────────────────────────────── */
+.view-toggle { display: flex; padding: 12px 14px 0; gap: 2px; flex-shrink: 0; }
+.vt-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; color: var(--text-2); background: transparent; transition: background .12s, color .12s; }
+.vt-btn.active { background: var(--surface); border-color: var(--border); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* ── Social View (SPACE Friends page) ──────────────────── */
+.social-view { display: none; flex: 1; overflow-y: auto; padding: 28px 32px; gap: 28px; flex-direction: column; }
+.social-view.visible { display: flex; }
+.contacts-view { display: flex; flex: 1; overflow: hidden; }
+.contacts-view.hidden { display: none; }
+
+.sv-section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.sv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.sv-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; cursor: pointer; transition: box-shadow .15s; }
+.sv-card:hover { box-shadow: var(--shadow); }
+.sv-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--text-2); margin-bottom: 4px; }
+.sv-name { font-size: 13px; font-weight: 600; }
+.sv-handle { font-size: 12px; color: var(--accent); }
+.sv-meta { font-size: 11px; color: var(--text-3); }
+.sv-mutuals { font-size: 11px; color: var(--text-2); }
+.sv-actions { display: flex; gap: 6px; margin-top: 4px; }
+.sv-act-btn { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+.sv-act-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.sv-owner-note { font-size: 11px; color: var(--amber); font-style: italic; background: var(--amber-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 20px; }
+
+.sv-suggested { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.sv-sug-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.sv-sug-info { flex: 1; min-width: 0; }
+.sv-sug-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sv-sug-detail { font-size: 11px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="app-shell contacts-shell">
+
+  <!-- Rail -->
+  <nav class="rail">
+    <div class="rail-logo">N</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="SPACE">🏠</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </nav>
+
+  <!-- Contacts sidebar -->
+  <aside class="c-sidebar">
+    <div class="c-sidebar-header">
+      <input class="c-search" type="text" placeholder="Search contacts…" value="">
+    </div>
+
+    <div class="c-nav-section">
+      <div class="c-nav-item active">
+        <span>👥</span> All Contacts
+        <span class="c-nav-count">247</span>
+      </div>
+      <div class="c-nav-item">
+        <span>📥</span> Inbox
+        <span class="c-nav-count" style="background:var(--accent);color:#fff;border-radius:10px;padding:0 6px;">3</span>
+      </div>
+      <div class="c-nav-item">
+        <span>⏰</span> Follow-up Due
+        <span class="c-nav-count" style="color:var(--amber);">7</span>
+      </div>
+      <div class="c-nav-item">
+        <span>📅</span> Birthdays
+        <span class="c-nav-count">18</span>
+      </div>
+      <div class="c-nav-item">
+        <span>🔗</span> On-platform
+        <span class="c-nav-count">183</span>
+      </div>
+      <div class="c-nav-item">
+        <span>👤</span> Off-platform
+        <span class="c-nav-count">64</span>
+      </div>
+      <div class="c-nav-item">
+        <span>🚩</span> Flagged
+        <span class="c-nav-count">2</span>
+      </div>
+    </div>
+
+    <div class="c-nav-section">
+      <div class="c-nav-label">Groups</div>
+      <div class="c-nav-item">
+        <div class="c-nav-dot" style="background:#2563EB"></div> Close Friends
+        <span class="c-nav-count">22</span>
+      </div>
+      <div class="c-nav-item">
+        <div class="c-nav-dot" style="background:#16A34A"></div> Family
+        <span class="c-nav-count">18</span>
+      </div>
+      <div class="c-nav-item">
+        <div class="c-nav-dot" style="background:#D97706"></div> Work
+        <span class="c-nav-count">41</span>
+      </div>
+      <div class="c-nav-item">
+        <div class="c-nav-dot" style="background:#7C3AED"></div> Band
+        <span class="c-nav-count">7</span>
+      </div>
+      <div class="c-nav-item">
+        <div class="c-nav-dot" style="background:#DC2626"></div> Clients
+        <span class="c-nav-count">23</span>
+      </div>
+      <div class="c-nav-item" style="color:var(--accent); font-size:12px; padding-left:6px;">
+        + New group
+      </div>
+    </div>
+
+    <div class="c-sidebar-footer">
+      <div class="c-foot-btn">Import</div>
+      <div class="c-foot-btn">Export</div>
+    </div>
+  </aside>
+
+  <!-- Main area: toggle between Contacts list view and Social view -->
+  <div class="main" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+
+    <div class="topbar">
+      <div class="topbar-title">Contacts</div>
+      <div class="topbar-sep"></div>
+      <div style="display:flex; gap:4px;">
+        <button class="vt-btn active" id="btn-contacts" onclick="showView('contacts')">Address Book</button>
+        <button class="vt-btn" id="btn-social" onclick="showView('social')">Social View</button>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-outline" style="font-size:12px;">+ Add Contact</button>
+      </div>
+    </div>
+
+    <!-- ── ADDRESS BOOK VIEW ─────────────────────────────── -->
+    <div class="contacts-view" id="view-contacts">
+
+      <!-- Contact list -->
+      <div class="c-list">
+        <div class="c-list-header">
+          <span class="c-list-title">All Contacts <span style="color:var(--text-3);font-weight:400;">247</span></span>
+          <div class="c-list-add">+</div>
+        </div>
+
+        <div class="c-alpha-scroll">
+
+          <!-- A -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">A</div>
+            <div class="c-row selected" onclick="showDetail('alex')">
+              <div class="c-avatar" style="background:#DBEAFE; color:#1D4ED8;">AC</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Alex Chen</div>
+                <div class="c-row-sub"><span class="badge-platform">@alexchen</span></div>
+              </div>
+            </div>
+            <div class="c-row" onclick="showDetail('amy')">
+              <div class="c-avatar" style="background:#F0FDF4; color:#15803D;">AK</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Amy Kowalski</div>
+                <div class="c-row-sub"><span class="badge-off">Off-platform</span></div>
+              </div>
+            </div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#FEF3C7; color:#B45309;">AM</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Amir Malik</div>
+                <div class="c-row-sub"><span class="badge-platform">@amirm</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- B -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">B</div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#F5F3FF; color:#6D28D9;">BM</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Brendan Murphy</div>
+                <div class="c-row-sub"><span class="badge-platform">@brendanm</span></div>
+              </div>
+            </div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#FFF1F2; color:#BE123C;">BR</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Bella Rossi</div>
+                <div class="c-row-sub"><span class="badge-off">Off-platform</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- C -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">C</div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#ECFDF5; color:#065F46;">CL</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Clara Lee</div>
+                <div class="c-row-sub"><span class="badge-platform">@claralee</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- D -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">D</div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#FFF7ED; color:#C2410C;">DK</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Daniel Kim</div>
+                <div class="c-row-sub"><span class="badge-platform">@dkim</span></div>
+              </div>
+            </div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#F0F9FF; color:#0369A1;">DP</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Diana Park</div>
+                <div class="c-row-sub"><span class="badge-off">Off-platform</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- E -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">E</div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#FDF4FF; color:#86198F;">EV</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Elena Vasquez</div>
+                <div class="c-row-sub"><span class="badge-platform">@elenav</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- F -->
+          <div class="c-alpha-group">
+            <div class="c-alpha-header">F</div>
+            <div class="c-row">
+              <div class="c-avatar" style="background:#F0FDF4; color:#166534;">FO</div>
+              <div style="min-width:0;">
+                <div class="c-row-name">Fatima Omar</div>
+                <div class="c-row-sub"><span class="badge-platform">@fatima.o</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Contact detail -->
+      <div class="c-detail">
+        <div id="detail-alex" class="c-detail-inner">
+
+          <!-- Owner note: visible only to you -->
+          <div style="background:var(--amber-bg); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; font-size:12px; color:var(--amber); margin-bottom:20px;">
+            🔒 Your notes, groups, and tags are private — Alex cannot see them.
+          </div>
+
+          <div class="c-detail-top">
+            <div class="c-avatar-lg" style="background:#DBEAFE; color:#1D4ED8;">AC</div>
+            <div>
+              <div class="c-detail-name">Alex Chen</div>
+              <div class="c-detail-handle">@alexchen · nTogether</div>
+              <div class="c-actions">
+                <div class="c-action-btn primary">💬 Message</div>
+                <div class="c-action-btn">🏠 View SPACE</div>
+                <div class="c-action-btn">✉ Email</div>
+                <div class="c-action-btn">···</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="c-tabs">
+            <div class="c-tab active" onclick="switchTab(this,'tab-details')">Details</div>
+            <div class="c-tab" onclick="switchTab(this,'tab-activity')">Activity</div>
+            <div class="c-tab" onclick="switchTab(this,'tab-mutual')">Mutual (14)</div>
+          </div>
+
+          <!-- Details tab -->
+          <div id="tab-details">
+
+            <div class="c-field-group">
+              <div class="c-field-label">Groups</div>
+              <div class="c-tag-row">
+                <span class="c-group-pill">Close Friends</span>
+                <span class="c-group-pill">Band</span>
+              </div>
+            </div>
+
+            <div class="c-field-group">
+              <div class="c-field-label">Tags</div>
+              <div class="c-tag-row">
+                <span class="c-tag">#guitarist</span>
+                <span class="c-tag">#producer</span>
+                <span class="c-tag">#sxsw-2025</span>
+              </div>
+            </div>
+
+            <!-- Follow-up -->
+            <div class="c-field-group">
+              <div class="c-field-label" style="display:flex;align-items:center;gap:6px;">
+                ⏰ Follow-up
+                <span style="font-size:10px;background:var(--amber-bg);color:var(--amber);padding:1px 6px;border-radius:4px;font-weight:600;">DUE TODAY</span>
+              </div>
+              <div class="c-field-row">
+                <span class="c-field-icon">📅</span>
+                <span class="c-field-val" style="color:var(--amber);">Apr 26, 2026</span>
+                <span class="c-field-muted" style="margin-left:auto;font-size:11px;">2 reminders set</span>
+              </div>
+            </div>
+
+            <div class="c-field-group">
+              <div class="c-field-label">Contact Info</div>
+              <div class="c-field-row"><span class="c-field-icon">✉</span><span class="c-field-val"><a href="#">alex@example.com</a></span></div>
+              <div class="c-field-row"><span class="c-field-icon">📱</span><span class="c-field-val">+1 (415) 555-0182</span></div>
+              <div class="c-field-row"><span class="c-field-icon">🎂</span><span class="c-field-val">March 14 <span class="c-field-muted">(in 51 days)</span></span></div>
+            </div>
+
+            <!-- Preferred contact methods -->
+            <div class="c-field-group">
+              <div class="c-field-label">Preferred Contact</div>
+              <div class="c-tag-row">
+                <span class="c-tag" style="background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);">Email</span>
+                <span class="c-tag" style="background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);">Instagram DM</span>
+                <span class="c-tag" style="background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);">Signal</span>
+              </div>
+            </div>
+
+            <!-- Social handles -->
+            <div class="c-field-group">
+              <div class="c-field-label">Social</div>
+              <div class="c-field-row"><span class="c-field-icon">📸</span><span class="c-field-val" style="color:var(--accent);">@alex.chen.music</span><span class="c-field-muted" style="font-size:11px;margin-left:6px;">Instagram</span></div>
+              <div class="c-field-row"><span class="c-field-icon">🐦</span><span class="c-field-val" style="color:var(--accent);">@alexchenmusic</span><span class="c-field-muted" style="font-size:11px;margin-left:6px;">X / Twitter</span></div>
+              <div class="c-field-row"><span class="c-field-icon">🎧</span><span class="c-field-val" style="color:var(--accent);">alexchen</span><span class="c-field-muted" style="font-size:11px;margin-left:6px;">Spotify</span></div>
+              <div class="c-field-row"><span class="c-field-icon">💻</span><span class="c-field-val" style="color:var(--accent);">alexchendev</span><span class="c-field-muted" style="font-size:11px;margin-left:6px;">GitHub</span></div>
+            </div>
+
+            <!-- Personal links -->
+            <div class="c-field-group">
+              <div class="c-field-label">Links</div>
+              <div class="c-field-row"><span class="c-field-icon">🌐</span><span class="c-field-val"><a href="#">alexchenmusic.com</a></span></div>
+              <div class="c-field-row"><span class="c-field-icon">🎵</span><span class="c-field-val"><a href="#">soundcloud.com/alexchen</a></span><span class="c-field-muted" style="font-size:11px;margin-left:6px;">Soundcloud</span></div>
+            </div>
+
+            <!-- Where/when met -->
+            <div class="c-field-group">
+              <div class="c-field-label">Context</div>
+              <div class="c-field-row"><span class="c-field-icon">📍</span><span class="c-field-val">SXSW 2025 — Stubb's Waller Creek</span></div>
+              <div class="c-field-row"><span class="c-field-icon">📅</span><span class="c-field-val c-field-muted">March 2025</span></div>
+              <div class="c-field-row"><span class="c-field-icon">👥</span><span class="c-field-val c-field-muted">Mutual: Jamie Lee, Priya Rao</span></div>
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text-2);line-height:1.6;font-style:italic;margin-top:6px;">
+                "Talked about the future of indie folk production — he had strong opinions on stem mastering. Exchanged numbers after the set."
+              </div>
+            </div>
+
+            <!-- Collaboration -->
+            <div class="c-field-group">
+              <div class="c-field-label">Collaboration</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;gap:8px;align-items:flex-start;">
+                  <span class="c-tag" style="background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);white-space:nowrap;">Project / Idea</span>
+                  <span style="font-size:13px;color:var(--text-2);line-height:1.5;">Co-produce 3 tracks for the EP. He handles arrangement, I handle mixing/mastering.</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-start;">
+                  <span class="c-tag" style="background:var(--green-bg);color:var(--green);border:1px solid var(--green);white-space:nowrap;">We Should…</span>
+                  <span style="font-size:13px;color:var(--text-2);line-height:1.5;">Get in the studio before end of May. He has access to Recording Arts SF on weekends.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="c-field-group">
+              <div class="c-field-label">Custom Fields</div>
+              <div class="c-field-row"><span class="c-field-icon">🎸</span><span class="c-field-val">Instrument: Guitar, Keys</span></div>
+            </div>
+
+            <div class="c-field-group">
+              <div class="c-field-label">Private Notes</div>
+              <div class="c-note-box">Send him the demo stems by end of month. He prefers Signal over email. Allergic to cats — don't do the home studio session.</div>
+            </div>
+
+            <div class="c-field-group">
+              <div class="c-field-label">Source</div>
+              <div class="c-field-row"><span class="c-field-icon">🔗</span><span class="c-field-val c-field-muted">Added via follow · Apr 12, 2026</span></div>
+            </div>
+
+          </div>
+
+          <!-- Activity tab (hidden) -->
+          <div id="tab-activity" style="display:none;">
+            <div class="c-activity-item">
+              <div class="c-act-icon act-event">📅</div>
+              <div class="c-act-body">
+                Tagged in <strong>Studio Session — EP pre-production</strong>
+                <div class="c-act-time">Apr 20, 2026 · Scheduler</div>
+              </div>
+            </div>
+            <div class="c-activity-item">
+              <div class="c-act-icon act-journal">📓</div>
+              <div class="c-act-body">
+                Mentioned in journal entry: <span>"…@alexchen showed me a new mix today…"</span>
+                <div class="c-act-time">Apr 18, 2026 · Journal</div>
+              </div>
+            </div>
+            <div class="c-activity-item">
+              <div class="c-act-icon act-agreement">🤝</div>
+              <div class="c-act-body">
+                Added as party to <strong>EP Co-production Agreement</strong>
+                <div class="c-act-time">Apr 10, 2026 · Agreement</div>
+              </div>
+            </div>
+            <div class="c-activity-item">
+              <div class="c-act-icon act-message">💬</div>
+              <div class="c-act-body">
+                MESSENGER thread active
+                <div class="c-act-time">Last message Apr 22, 2026</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mutual tab (hidden) -->
+          <div id="tab-mutual" style="display:none;">
+            <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">14 people you both follow</p>
+            <div class="c-mutual-grid">
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">BM</div>
+                <div class="c-mutual-name">Brendan M.</div>
+              </div>
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">CL</div>
+                <div class="c-mutual-name">Clara Lee</div>
+              </div>
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">EV</div>
+                <div class="c-mutual-name">Elena V.</div>
+              </div>
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">FO</div>
+                <div class="c-mutual-name">Fatima O.</div>
+              </div>
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">DK</div>
+                <div class="c-mutual-name">Daniel K.</div>
+              </div>
+              <div class="c-mutual-card">
+                <div class="c-mutual-avatar">AM</div>
+                <div class="c-mutual-name">Amir M.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Off-platform detail (hidden by default) -->
+        <div id="detail-amy" class="c-detail-inner" style="display:none;">
+          <div class="c-detail-top">
+            <div class="c-avatar-lg" style="background:#F0FDF4; color:#15803D;">AK</div>
+            <div>
+              <div class="c-detail-name">Amy Kowalski</div>
+              <div class="c-detail-handle off">Off-platform contact</div>
+              <div class="c-actions">
+                <div class="c-action-btn">✉ Email</div>
+                <div class="c-action-btn">📱 Call</div>
+                <div class="c-action-btn">···</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--amber-bg); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; font-size:13px; color:var(--amber); margin-bottom:20px;">
+            Amy isn't on nTogether. If they join, you'll be prompted to link their profile.
+          </div>
+
+          <div class="c-tabs">
+            <div class="c-tab active">Details</div>
+            <div class="c-tab">Activity</div>
+          </div>
+
+          <div class="c-field-group">
+            <div class="c-field-label">Groups</div>
+            <div class="c-tag-row">
+              <span class="c-group-pill">Family</span>
+            </div>
+          </div>
+
+          <div class="c-field-group">
+            <div class="c-field-label">Contact Info</div>
+            <div class="c-field-row"><span class="c-field-icon">✉</span><span class="c-field-val"><a href="#">amy.kowalski@example.com</a></span></div>
+            <div class="c-field-row"><span class="c-field-icon">📱</span><span class="c-field-val">+1 (312) 555-0044</span></div>
+            <div class="c-field-row"><span class="c-field-icon">🎂</span><span class="c-field-val">July 3</span></div>
+          </div>
+
+          <div class="c-field-group">
+            <div class="c-field-label">Private Notes</div>
+            <div class="c-note-box">Sister. Prefers texts to calls. Allergic to peanuts — remember for dinners.</div>
+          </div>
+
+          <div class="c-field-group">
+            <div class="c-field-label">Source</div>
+            <div class="c-field-row"><span class="c-field-icon">📋</span><span class="c-field-val c-field-muted">Imported from vCard · Jan 5, 2026</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- end contacts view -->
+
+    <!-- ── SOCIAL VIEW (SPACE Friends page) ─────────────── -->
+    <div class="social-view" id="view-social">
+
+      <div>
+        <div class="sv-owner-note">
+          🔒 This is your private view — groups and notes are only visible to you. Visitors see names, avatars, and mutual count only.
+        </div>
+
+        <div class="sv-section-title">Following <span style="font-size:14px; font-weight:400; color:var(--text-3);">183</span></div>
+        <div class="sv-grid">
+
+          <div class="sv-card">
+            <div class="sv-avatar">AC</div>
+            <div class="sv-name">Alex Chen</div>
+            <div class="sv-handle">@alexchen</div>
+            <div class="sv-meta" style="color:var(--accent); font-size:10px; font-weight:600;">Close Friends · Band</div>
+            <div class="sv-mutuals">14 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+          <div class="sv-card">
+            <div class="sv-avatar" style="background:#F5F3FF; color:#6D28D9;">BM</div>
+            <div class="sv-name">Brendan Murphy</div>
+            <div class="sv-handle">@brendanm</div>
+            <div class="sv-meta" style="color:var(--accent); font-size:10px; font-weight:600;">Band</div>
+            <div class="sv-mutuals">22 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+          <div class="sv-card">
+            <div class="sv-avatar" style="background:#ECFDF5; color:#065F46;">CL</div>
+            <div class="sv-name">Clara Lee</div>
+            <div class="sv-handle">@claralee</div>
+            <div class="sv-meta" style="color:var(--text-3); font-size:10px;">No group</div>
+            <div class="sv-mutuals">9 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+          <div class="sv-card">
+            <div class="sv-avatar" style="background:#FDF4FF; color:#86198F;">EV</div>
+            <div class="sv-name">Elena Vasquez</div>
+            <div class="sv-handle">@elenav</div>
+            <div class="sv-meta" style="color:var(--accent); font-size:10px; font-weight:600;">Work</div>
+            <div class="sv-mutuals">31 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+          <div class="sv-card">
+            <div class="sv-avatar" style="background:#F0F9FF; color:#0369A1;">AM</div>
+            <div class="sv-name">Amir Malik</div>
+            <div class="sv-handle">@amirm</div>
+            <div class="sv-meta" style="color:var(--accent); font-size:10px; font-weight:600;">Work · Clients</div>
+            <div class="sv-mutuals">18 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+          <div class="sv-card">
+            <div class="sv-avatar" style="background:#FFF7ED; color:#C2410C;">DK</div>
+            <div class="sv-name">Daniel Kim</div>
+            <div class="sv-handle">@dkim</div>
+            <div class="sv-meta" style="color:var(--text-3); font-size:10px;">No group</div>
+            <div class="sv-mutuals">5 mutuals</div>
+            <div class="sv-actions">
+              <div class="sv-act-btn primary">💬</div>
+              <div class="sv-act-btn">🏠</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="sv-section-title">Suggested Connections</div>
+        <div class="sv-suggested">
+          <div class="sv-sug-row">
+            <div class="c-mutual-avatar" style="width:38px;height:38px;font-size:13px;">JP</div>
+            <div class="sv-sug-info">
+              <div class="sv-sug-name">James Park</div>
+              <div class="sv-sug-detail">8 mutual connections · @jamespark</div>
+            </div>
+            <div class="sv-act-btn primary" style="font-size:12px; padding:5px 12px;">Follow</div>
+          </div>
+          <div class="sv-sug-row">
+            <div class="c-mutual-avatar" style="width:38px;height:38px;font-size:13px;">LT</div>
+            <div class="sv-sug-info">
+              <div class="sv-sug-name">Lena Torres</div>
+              <div class="sv-sug-detail">6 mutual connections · @lenat</div>
+            </div>
+            <div class="sv-act-btn primary" style="font-size:12px; padding:5px 12px;">Follow</div>
+          </div>
+          <div class="sv-sug-row">
+            <div class="c-mutual-avatar" style="width:38px;height:38px;font-size:13px;">RN</div>
+            <div class="sv-sug-info">
+              <div class="sv-sug-name">Raj Nair</div>
+              <div class="sv-sug-detail">5 mutual connections · @rajnair</div>
+            </div>
+            <div class="sv-act-btn primary" style="font-size:12px; padding:5px 12px;">Follow</div>
+          </div>
+          <div class="sv-sug-row">
+            <div class="c-mutual-avatar" style="width:38px;height:38px;font-size:13px;">SB</div>
+            <div class="sv-sug-info">
+              <div class="sv-sug-name">Sofia Bergström</div>
+              <div class="sv-sug-detail">4 mutual connections · @sofiab</div>
+            </div>
+            <div class="sv-act-btn primary" style="font-size:12px; padding:5px 12px;">Follow</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- end social view -->
+
+  </div>
+</div>
+
+<script>
+function showView(v) {
+  document.getElementById('view-contacts').classList.toggle('hidden', v !== 'contacts');
+  document.getElementById('view-social').classList.toggle('visible', v === 'social');
+  document.getElementById('btn-contacts').classList.toggle('active', v === 'contacts');
+  document.getElementById('btn-social').classList.toggle('active', v === 'social');
+}
+
+function showDetail(id) {
+  document.querySelectorAll('.c-detail-inner').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.c-row').forEach(el => el.classList.remove('selected'));
+  const detail = document.getElementById('detail-' + id);
+  if (detail) { detail.style.display = 'block'; event.currentTarget.classList.add('selected'); }
+}
+
+function switchTab(el, tabId) {
+  el.closest('.c-detail-inner').querySelectorAll('.c-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['tab-details','tab-activity','tab-mutual'].forEach(id => {
+    const el2 = document.getElementById(id);
+    if (el2) el2.style.display = (id === tabId) ? 'block' : 'none';
+  });
+}
+</script>
+</body>
+</html>

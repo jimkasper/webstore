@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podcasts — CONNECT — nTogether</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+/* ── Layout (matches music.html structure) ───────────────── */
+.connect-shell { display:flex; height:100vh; overflow:hidden; flex-direction:column; }
+.connect-body  { display:flex; flex:1; overflow:hidden; }
+.cn-sidebar    { width:200px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+.cn-main       { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.player-bar    { height:80px; background:var(--surface); border-top:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; }
+
+/* ── CONNECT nav sidebar ─────────────────────────────────── */
+.cn-logo { padding:14px 14px 8px; font-size:16px; font-weight:800; color:var(--accent); }
+.cn-nav-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-3); padding:8px 14px 4px; }
+.cn-nav-item  { display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; font-size:13px; color:var(--text-2); transition:background .1s, color .1s; }
+.cn-nav-item:hover  { background:var(--surface-2); color:var(--text); }
+.cn-nav-item.active { background:var(--accent-bg); color:var(--accent); font-weight:600; }
+
+/* ── Topbar ──────────────────────────────────────────────── */
+.cn-topbar { height:52px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:8px; flex-shrink:0; }
+.cn-topbar-title { font-weight:700; font-size:16px; }
+.cn-search { flex:1; max-width:320px; padding:7px 10px 7px 30px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23A09890' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 8px center no-repeat; outline:none; color:var(--text); }
+.cn-search:focus { border-color:var(--accent); }
+
+/* ── Content area ────────────────────────────────────────── */
+.cn-content { flex:1; overflow-y:auto; padding:20px; }
+.cn-section { margin-bottom:28px; }
+.cn-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.cn-section-title { font-size:16px; font-weight:700; }
+.cn-see-all { font-size:12px; color:var(--accent); cursor:pointer; font-weight:500; }
+
+/* ── Show grid ───────────────────────────────────────────── */
+.show-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:16px; }
+.show-card { cursor:pointer; transition:transform .12s; }
+.show-card:hover { transform:translateY(-2px); }
+.show-art { width:100%; aspect-ratio:1; border-radius:var(--radius); overflow:hidden; margin-bottom:8px; display:flex; align-items:center; justify-content:center; font-size:40px; box-shadow:var(--shadow); }
+.show-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.show-host { font-size:11px; color:var(--text-2); }
+.show-eps  { font-size:11px; color:var(--text-3); }
+
+/* ── Episode list ────────────────────────────────────────── */
+.ep-list { display:flex; flex-direction:column; gap:0; }
+.ep-row { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:var(--radius); cursor:pointer; transition:background .1s; border:1px solid transparent; }
+.ep-row:hover  { background:var(--surface-2); }
+.ep-row.playing { background:var(--accent-bg); border-color:#BFDBFE; }
+.ep-art { width:52px; height:52px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.ep-info { flex:1; min-width:0; }
+.ep-show { font-size:11px; color:var(--text-3); margin-bottom:1px; }
+.ep-title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ep-meta  { font-size:11px; color:var(--text-2); margin-top:2px; }
+.ep-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.ep-dur { font-size:12px; color:var(--text-3); width:38px; text-align:right; }
+.ep-btn { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:14px; }
+.ep-btn:hover { background:var(--surface-2); }
+.ep-play { background:var(--accent); color:#fff !important; }
+
+/* ── Player bar ──────────────────────────────────────────── */
+.pb-art   { width:52px; height:52px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.pb-info  { width:220px; flex-shrink:0; overflow:hidden; }
+.pb-episode { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pb-show    { font-size:11px; color:var(--text-2); }
+.pb-controls { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.pb-btns { display:flex; align-items:center; gap:12px; }
+.pb-btn  { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:16px; }
+.pb-btn:hover { background:var(--surface-2); }
+.pb-play-btn { width:38px; height:38px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; }
+.pb-progress { width:100%; display:flex; align-items:center; gap:8px; }
+.pb-time { font-size:11px; color:var(--text-3); width:36px; text-align:center; }
+.pb-bar  { flex:1; height:4px; background:var(--border); border-radius:2px; overflow:hidden; cursor:pointer; }
+.pb-fill { height:100%; background:var(--accent); border-radius:2px; width:28%; }
+.pb-right { width:200px; display:flex; align-items:center; gap:8px; justify-content:flex-end; flex-shrink:0; }
+.pb-speed-btn { padding:3px 8px; background:var(--surface-2); border:1px solid var(--border); border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; color:var(--text-2); }
+.pb-sleep-btn { padding:3px 8px; background:var(--surface-2); border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; color:var(--text-2); }
+</style>
+</head>
+<body>
+<div class="app-shell connect-shell">
+
+  <!-- Rail -->
+  <nav class="rail">
+    <div class="rail-logo">N</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="SPACE">🏠</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon active" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </nav>
+
+  <div class="connect-body">
+    <!-- CONNECT sidebar -->
+    <div class="cn-sidebar">
+      <div class="cn-logo">CONNECT</div>
+      <div class="cn-nav-label">Discover</div>
+      <div class="cn-nav-item">🏠 Social Feed</div>
+      <div class="cn-nav-item">🎵 Music</div>
+      <div class="cn-nav-item">🎬 Video</div>
+      <div class="cn-nav-item active">🎙 Podcasts</div>
+      <div class="cn-nav-item">🔍 Search</div>
+      <div class="cn-nav-label">Library</div>
+      <div class="cn-nav-item">📚 Subscribed Shows</div>
+      <div class="cn-nav-item">⏱ Listen History</div>
+      <div class="cn-nav-item">📥 Downloads</div>
+      <div class="cn-nav-item">🔖 Saved Episodes</div>
+      <div class="cn-nav-label">Marketplace</div>
+      <div class="cn-nav-item">⚡ Algorithms</div>
+      <div class="cn-nav-item">📊 Data Market</div>
+    </div>
+
+    <!-- Main -->
+    <div class="cn-main">
+      <div class="cn-topbar">
+        <div class="cn-topbar-title">Podcasts</div>
+        <input class="cn-search" type="text" placeholder="Search shows, episodes…">
+      </div>
+
+      <div class="cn-content">
+
+        <!-- Continue listening -->
+        <div class="cn-section">
+          <div class="cn-section-header">
+            <div class="cn-section-title">Continue listening</div>
+          </div>
+          <div class="ep-list">
+            <div class="ep-row playing">
+              <div class="ep-art" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);">🎙</div>
+              <div class="ep-info">
+                <div class="ep-show">The Indie Musician Podcast</div>
+                <div class="ep-title">Ep. 214 — Self-releasing your EP without a label</div>
+                <div class="ep-meta">58 min · 28 min left · 2 days ago</div>
+              </div>
+              <div class="ep-actions">
+                <div class="ep-btn ep-play">▶</div>
+                <div class="ep-btn">⋯</div>
+                <div class="ep-dur">28m</div>
+              </div>
+            </div>
+            <div class="ep-row">
+              <div class="ep-art" style="background:linear-gradient(135deg,#1A1A1A,#6B21A8);">🎵</div>
+              <div class="ep-info">
+                <div class="ep-show">Song Exploder</div>
+                <div class="ep-title">Phoebe Bridgers — Savior Complex</div>
+                <div class="ep-meta">26 min · 11 min left · 4 days ago</div>
+              </div>
+              <div class="ep-actions">
+                <div class="ep-btn">▶</div>
+                <div class="ep-btn">⋯</div>
+                <div class="ep-dur">11m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscribed shows -->
+        <div class="cn-section">
+          <div class="cn-section-header">
+            <div class="cn-section-title">Your shows</div>
+            <div class="cn-see-all">See all 12 →</div>
+          </div>
+          <div class="show-grid">
+            <div class="show-card">
+              <div class="show-art" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);">🎙</div>
+              <div class="show-name">The Indie Musician</div>
+              <div class="show-host">Jordan Rivers</div>
+              <div class="show-eps">New ep · 3h ago</div>
+            </div>
+            <div class="show-card">
+              <div class="show-art" style="background:linear-gradient(135deg,#1A1A1A,#6B21A8);">🎵</div>
+              <div class="show-name">Song Exploder</div>
+              <div class="show-host">Hrishikesh Hirway</div>
+              <div class="show-eps">Ep 308</div>
+            </div>
+            <div class="show-card">
+              <div class="show-art" style="background:linear-gradient(135deg,#065F46,#10B981);">🎚</div>
+              <div class="show-name">Sound on Sound</div>
+              <div class="show-host">Marcus Webb</div>
+              <div class="show-eps">New ep · 1d ago</div>
+            </div>
+            <div class="show-card">
+              <div class="show-art" style="background:linear-gradient(135deg,#7C2D12,#EA580C);">🎸</div>
+              <div class="show-name">Tape Notes</div>
+              <div class="show-host">Jo Whitfield</div>
+              <div class="show-eps">Ep 92</div>
+            </div>
+            <div class="show-card">
+              <div class="show-art" style="background:linear-gradient(135deg,#1E1B4B,#4338CA);">📻</div>
+              <div class="show-name">Music Business</div>
+              <div class="show-host">Ari Herstand</div>
+              <div class="show-eps">New ep · 2d ago</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New episodes -->
+        <div class="cn-section">
+          <div class="cn-section-header">
+            <div class="cn-section-title">New episodes</div>
+            <div class="cn-see-all">See all →</div>
+          </div>
+          <div class="ep-list">
+            <div class="ep-row">
+              <div class="ep-art" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);">🎙</div>
+              <div class="ep-info">
+                <div class="ep-show">The Indie Musician Podcast</div>
+                <div class="ep-title">Ep. 215 — Sync licensing for independent artists</div>
+                <div class="ep-meta">52 min · 3 hours ago</div>
+              </div>
+              <div class="ep-actions">
+                <div class="ep-btn">▶</div>
+                <div class="ep-btn">📥</div>
+                <div class="ep-dur">52m</div>
+              </div>
+            </div>
+            <div class="ep-row">
+              <div class="ep-art" style="background:linear-gradient(135deg,#065F46,#10B981);">🎚</div>
+              <div class="ep-info">
+                <div class="ep-show">Sound on Sound</div>
+                <div class="ep-title">Mixing acoustic instruments in a home studio</div>
+                <div class="ep-meta">74 min · 1 day ago</div>
+              </div>
+              <div class="ep-actions">
+                <div class="ep-btn">▶</div>
+                <div class="ep-btn">📥</div>
+                <div class="ep-dur">74m</div>
+              </div>
+            </div>
+            <div class="ep-row">
+              <div class="ep-art" style="background:linear-gradient(135deg,#1E1B4B,#4338CA);">📻</div>
+              <div class="ep-info">
+                <div class="ep-show">Music Business Weekly</div>
+                <div class="ep-title">Streaming royalties in 2026 — what's changed?</div>
+                <div class="ep-meta">41 min · 2 days ago</div>
+              </div>
+              <div class="ep-actions">
+                <div class="ep-btn">▶</div>
+                <div class="ep-btn">📥</div>
+                <div class="ep-dur">41m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Player bar -->
+      <div class="player-bar">
+        <div class="pb-art" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);">🎙</div>
+        <div class="pb-info">
+          <div class="pb-episode">Ep. 214 — Self-releasing your EP without a label</div>
+          <div class="pb-show">The Indie Musician Podcast</div>
+        </div>
+        <div class="pb-controls">
+          <div class="pb-btns">
+            <div class="pb-btn" title="Skip back 30s">⟲ 30</div>
+            <div class="pb-btn">⏮</div>
+            <div class="pb-play-btn">⏸</div>
+            <div class="pb-btn">⏭</div>
+            <div class="pb-btn" title="Skip forward 30s">30 ⟳</div>
+          </div>
+          <div class="pb-progress">
+            <span class="pb-time">30:04</span>
+            <div class="pb-bar"><div class="pb-fill"></div></div>
+            <span class="pb-time">58:12</span>
+          </div>
+        </div>
+        <div class="pb-right">
+          <div class="pb-speed-btn">1.25×</div>
+          <div class="pb-sleep-btn">🌙 Sleep</div>
+          <div class="pb-btn">📥</div>
+          <div class="pb-btn">⋯</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

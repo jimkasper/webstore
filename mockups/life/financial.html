@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.fin-sidebar { width: 220px; }
+.fin-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.fin-nav-item:hover { background: var(--surface-2); color: var(--text); }
+.fin-nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+.summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+.summary-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.summary-value { font-size: 24px; font-weight: 700; color: var(--text); }
+.summary-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.income-val { color: var(--green); }
+.expense-val { color: var(--red); }
+
+.tx-section { margin-bottom: 24px; }
+.tx-section-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); padding: 12px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
+.tx-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.tx-row:hover { background: var(--surface-2); margin: 0 -8px; padding: 10px 8px; border-radius: var(--radius-sm); border-bottom-color: transparent; }
+.tx-icon { width: 36px; height: 36px; border-radius: var(--radius); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.tx-info { flex: 1; }
+.tx-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.tx-meta { font-size: 11px; color: var(--text-3); }
+.tx-amount { font-size: 14px; font-weight: 600; }
+.tx-credit { color: var(--green); }
+.tx-debit { color: var(--text); }
+.tx-tag { font-size: 10px; }
+
+.budget-bar-section { margin-bottom: 24px; }
+.budget-item { margin-bottom: 12px; }
+.budget-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.budget-label { font-weight: 500; }
+.budget-val { color: var(--text-3); }
+.budget-val.over { color: var(--red); font-weight: 600; }
+
+.account-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+.account-item:hover { background: var(--surface-2); }
+.account-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.account-balance { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">💳</span>
+      <div class="topbar-title">Financial</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">Overview</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Transactions</div>
+      <div class="btn btn-ghost btn-sm">Budgets</div>
+      <div class="btn btn-ghost btn-sm">Reports</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">← March</div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">April 2026</div>
+      <div class="btn btn-ghost btn-sm">May →</div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm">+ Add transaction</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar -->
+      <div class="sidebar fin-sidebar">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Accounts</div>
+          <div class="account-item"><div class="account-dot" style="background:#2563EB;"></div> Checking <span class="account-balance">$3,240</span></div>
+          <div class="account-item"><div class="account-dot" style="background:#16A34A;"></div> Savings <span class="account-balance">$12,800</span></div>
+          <div class="account-item"><div class="account-dot" style="background:#D97706;"></div> Credit card <span class="account-balance" style="color:var(--red);">-$840</span></div>
+          <div class="account-item" style="color:var(--text-3);font-size:12px;padding-left:22px;">+ Add account</div>
+        </div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Categories</div>
+          <div class="fin-nav-item active">📊 All transactions</div>
+          <div class="fin-nav-item">🏠 Housing</div>
+          <div class="fin-nav-item">🍔 Food & dining</div>
+          <div class="fin-nav-item">🚗 Transport</div>
+          <div class="fin-nav-item">💪 Health</div>
+          <div class="fin-nav-item">🎬 Entertainment</div>
+          <div class="fin-nav-item">📱 Subscriptions</div>
+          <div class="fin-nav-item">🛒 Shopping</div>
+          <div class="fin-nav-item">💼 Income</div>
+          <div class="fin-nav-item">📦 Other</div>
+        </div>
+        <div style="padding:12px 14px;">
+          <div class="sidebar-label" style="margin-bottom:8px;">April Budget</div>
+          <div class="budget-item">
+            <div class="budget-row"><span class="budget-label">Food & dining</span><span class="budget-val">$320 / $400</span></div>
+            <div class="progress progress-green"><div class="progress-fill" style="width:80%;"></div></div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-row"><span class="budget-label">Entertainment</span><span class="budget-val over">$145 / $100</span></div>
+            <div class="progress"><div class="progress-fill" style="width:100%;background:var(--red);"></div></div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-row"><span class="budget-label">Transport</span><span class="budget-val">$68 / $150</span></div>
+            <div class="progress progress-green"><div class="progress-fill" style="width:45%;"></div></div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-row"><span class="budget-label">Shopping</span><span class="budget-val">$210 / $300</span></div>
+            <div class="progress"><div class="progress-fill" style="width:70%;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main transactions view -->
+      <div style="flex:1;overflow-y:auto;padding:20px 28px;background:var(--surface);">
+        <!-- Summary cards -->
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Income</div>
+            <div class="summary-value income-val">+$4,200</div>
+            <div class="summary-sub">Salary + freelance</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Expenses</div>
+            <div class="summary-value expense-val">-$2,143</div>
+            <div class="summary-sub">51% of income</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Net saved</div>
+            <div class="summary-value">$2,057</div>
+            <div class="summary-sub">49% savings rate 🎉</div>
+          </div>
+        </div>
+
+        <!-- Today -->
+        <div class="tx-section">
+          <div class="tx-section-header">Today — Apr 24</div>
+          <div class="tx-row">
+            <div class="tx-icon">☕</div>
+            <div class="tx-info">
+              <div class="tx-name">Grano Coffee</div>
+              <div class="tx-meta">Food & dining · Checking</div>
+            </div>
+            <div class="tx-amount tx-debit">-$4.80</div>
+          </div>
+        </div>
+
+        <!-- Yesterday -->
+        <div class="tx-section">
+          <div class="tx-section-header">Yesterday — Apr 23</div>
+          <div class="tx-row">
+            <div class="tx-icon">🍽</div>
+            <div class="tx-info">
+              <div class="tx-name">Lunch with Mum — Trattoria Bella</div>
+              <div class="tx-meta">Food & dining · Credit card</div>
+            </div>
+            <div class="tx-amount tx-debit">-$68.40</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon">🎬</div>
+            <div class="tx-info">
+              <div class="tx-name">Cinema tickets × 2</div>
+              <div class="tx-meta">Entertainment · Credit card</div>
+            </div>
+            <div class="tx-amount tx-debit">-$28.00</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon">💼</div>
+            <div class="tx-info">
+              <div class="tx-name">Freelance — Project Omega invoice</div>
+              <div class="tx-meta">Income · Checking</div>
+            </div>
+            <div class="tx-amount tx-credit">+$800.00</div>
+          </div>
+        </div>
+
+        <!-- Apr 22 -->
+        <div class="tx-section">
+          <div class="tx-section-header">Apr 22</div>
+          <div class="tx-row">
+            <div class="tx-icon">🏋️</div>
+            <div class="tx-info">
+              <div class="tx-name">Gym membership — FitLife</div>
+              <div class="tx-meta">Health · Checking · Recurring</div>
+            </div>
+            <div class="tx-amount tx-debit">-$45.00</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon">🛒</div>
+            <div class="tx-info">
+              <div class="tx-name">Grocery run — FreshMart</div>
+              <div class="tx-meta">Food & dining · Checking</div>
+            </div>
+            <div class="tx-amount tx-debit">-$86.20</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon">📱</div>
+            <div class="tx-info">
+              <div class="tx-name">nTogether Premium</div>
+              <div class="tx-meta">Subscriptions · Credit card · Monthly</div>
+            </div>
+            <div class="tx-amount tx-debit">-$25.00</div>
+          </div>
+        </div>
+
+        <!-- Apr 20 -->
+        <div class="tx-section">
+          <div class="tx-section-header">Apr 20</div>
+          <div class="tx-row">
+            <div class="tx-icon">💼</div>
+            <div class="tx-info">
+              <div class="tx-name">Salary — Brandt & Co.</div>
+              <div class="tx-meta">Income · Checking · Monthly direct deposit</div>
+            </div>
+            <div class="tx-amount tx-credit">+$3,400.00</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon">🚗</div>
+            <div class="tx-info">
+              <div class="tx-name">Uber — conference day 2</div>
+              <div class="tx-meta">Transport · Credit card</div>
+            </div>
+            <div class="tx-amount tx-debit">-$18.50</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

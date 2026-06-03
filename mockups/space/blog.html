@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Stoll — Blog</title>
+<link rel="stylesheet" href="shared-space.css">
+<style>
+.blog-hero { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 20px; cursor: pointer; box-shadow: var(--shadow-sm); display: flex; }
+.blog-hero-img { width: 280px; min-height: 200px; background: linear-gradient(135deg, #1A1A1A, #6B4226); display: flex; align-items: center; justify-content: center; font-size: 56px; flex-shrink: 0; }
+.blog-hero-content { padding: 28px 32px; display: flex; flex-direction: column; justify-content: center; }
+.blog-hero-cat { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 8px; }
+.blog-hero-title { font-family: var(--font-serif); font-size: 22px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 10px; }
+.blog-hero-excerpt { font-size: 13px; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+.blog-hero-meta { font-size: 11px; color: var(--text-3); display: flex; gap: 12px; }
+
+.blog-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; cursor: pointer; box-shadow: var(--shadow-sm); transition: box-shadow .15s; }
+.blog-card:hover { box-shadow: var(--shadow); }
+.blog-card-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 6px; }
+.blog-card-title { font-family: var(--font-serif); font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 8px; }
+.blog-card-excerpt { font-size: 13px; color: var(--text-2); line-height: 1.7; margin-bottom: 12px; }
+.blog-card-meta { font-size: 11px; color: var(--text-3); display: flex; gap: 12px; align-items: center; }
+.blog-card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-3); }
+
+.series-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 8px; cursor: pointer; }
+.series-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.series-count { font-size: 11px; color: var(--text-3); }
+
+.cat-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; cursor: pointer; }
+.cat-item:last-child { border-bottom: none; }
+.cat-item:hover { color: var(--blue); }
+.cat-count { font-size: 11px; color: var(--text-3); background: var(--surface-2); padding: 1px 6px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<nav class="space-nav">
+  <div class="space-nav-inner">
+    <div class="space-nav-logo">nTogether / <span>alex</span></div>
+    <div class="space-nav-links">
+      <a class="snl">Wall</a>
+      <a class="snl">About</a>
+      <a class="snl">Media</a>
+      <a class="snl active">Blog</a>
+      <a class="snl">Friends</a>
+      <a class="snl">Activity</a>
+    </div>
+    <div class="space-nav-right">
+      <div class="btn btn-outline btn-sm">RSS</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</nav>
+
+<div class="space-cover" style="height:120px;">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A1A 0%,#6B4226 40%,#A16207 100%);opacity:.9;"></div>
+</div>
+<div class="space-header">
+  <div class="space-header-inner">
+    <div class="space-avatar-wrap"><div class="space-avatar">A</div></div>
+    <div class="space-identity">
+      <div class="space-name">Alex Stoll — Blog</div>
+      <div class="space-handle">✍️ 24 articles · Design, decisions, and life</div>
+    </div>
+    <div class="space-actions">
+      <div class="btn btn-outline btn-sm">📧 Subscribe</div>
+      <div class="btn btn-dark btn-sm">+ Follow</div>
+    </div>
+  </div>
+</div>
+
+<div class="space-page">
+  <div class="main-col">
+    <!-- Hero post -->
+    <div class="blog-hero">
+      <div class="blog-hero-img">📝</div>
+      <div class="blog-hero-content">
+        <div class="blog-hero-cat">Essays · Featured</div>
+        <div class="blog-hero-title">On making decisions under uncertainty</div>
+        <div class="blog-hero-excerpt">Three years ago I turned down a similar opportunity and have spent most of the time since wondering what if. The difference between decisions we regret and decisions we don't isn't the outcome — it's whether we were honest with ourselves at the time.</div>
+        <div class="blog-hero-meta">
+          <span>Apr 22, 2026</span>
+          <span>·</span>
+          <span>8 min read</span>
+          <span>·</span>
+          <span>❤️ 91 · 💬 17</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article list -->
+    <div class="blog-card">
+      <div class="blog-card-cat">Design</div>
+      <div class="blog-card-title">Designing for emotional states, not tasks</div>
+      <div class="blog-card-excerpt">Inspired by Miriam Chen's talk at the UX conference last week. We spend so much time optimizing flows for efficiency that we forget: the user's emotional state when they arrive shapes everything.</div>
+      <div class="blog-card-meta">
+        <span>Apr 21, 2026</span>
+        <div class="dot"></div>
+        <span>6 min read</span>
+        <div class="dot"></div>
+        <span>❤️ 64 · 💬 11</span>
+      </div>
+    </div>
+
+    <div class="blog-card">
+      <div class="blog-card-cat">Life</div>
+      <div class="blog-card-title">The case for keeping a decision journal</div>
+      <div class="blog-card-excerpt">I've kept a record of every significant decision I've made since 2022 — what I thought at the time, what I was afraid of, what I told myself. Reading back through it is one of the stranger experiences I've had.</div>
+      <div class="blog-card-meta">
+        <span>Apr 10, 2026</span>
+        <div class="dot"></div>
+        <span>5 min read</span>
+        <div class="dot"></div>
+        <span>❤️ 142 · 💬 28</span>
+      </div>
+    </div>
+
+    <div class="blog-card">
+      <div class="blog-card-cat">Design · Series: Design Systems</div>
+      <div class="blog-card-title">Why your design system will never be finished (and why that's fine)</div>
+      <div class="blog-card-excerpt">Part 3 of the Design Systems series. The teams that struggle most with design systems are those trying to make them complete. The best design systems I've seen are comfortable being incomplete.</div>
+      <div class="blog-card-meta">
+        <span>Mar 28, 2026</span>
+        <div class="dot"></div>
+        <span>7 min read</span>
+        <div class="dot"></div>
+        <span>❤️ 87 · 💬 19</span>
+      </div>
+    </div>
+
+    <div class="blog-card">
+      <div class="blog-card-cat">Running</div>
+      <div class="blog-card-title">What training for a half-marathon taught me about design</div>
+      <div class="blog-card-excerpt">At week 4 of the training plan, I noticed something: the days I was most frustrated with my running were the same days I was most frustrated with my work. The pattern was obvious once I saw it.</div>
+      <div class="blog-card-meta">
+        <span>Mar 14, 2026</span>
+        <div class="dot"></div>
+        <span>4 min read</span>
+        <div class="dot"></div>
+        <span>❤️ 53 · 💬 9</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:8px;">
+      <div class="btn btn-outline">Load more articles</div>
+    </div>
+  </div>
+
+  <div class="side-col">
+    <div class="card">
+      <div class="card-title">Categories</div>
+      <div class="cat-item"><span>✍️ Essays</span><span class="cat-count">9</span></div>
+      <div class="cat-item"><span>🎨 Design</span><span class="cat-count">8</span></div>
+      <div class="cat-item"><span>🌿 Life</span><span class="cat-count">4</span></div>
+      <div class="cat-item"><span>🏃 Running</span><span class="cat-count">2</span></div>
+      <div class="cat-item"><span>📚 Books</span><span class="cat-count">1</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Series</div>
+      <div class="series-card">
+        <div class="series-name">Design Systems</div>
+        <div class="series-count">3 parts · In progress</div>
+      </div>
+      <div class="series-card">
+        <div class="series-name">Decision Journal</div>
+        <div class="series-count">2 parts · In progress</div>
+      </div>
+      <div class="series-card">
+        <div class="series-name">Running log 2026</div>
+        <div class="series-count">2 parts · In progress</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Subscribe</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;line-height:1.6;">Get new posts delivered to your inbox. No noise — only when I publish.</div>
+      <input style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:var(--font);outline:none;margin-bottom:8px;" placeholder="your@email.com">
+      <div class="btn btn-dark" style="width:100%;justify-content:center;">Subscribe</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:8px;text-align:center;">214 subscribers · No spam. Unsubscribe anytime.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Most read</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:13px;color:var(--text);cursor:pointer;">The case for keeping a decision journal <span style="color:var(--text-3);font-size:11px;">142 ❤️</span></div>
+        <div style="font-size:13px;color:var(--text);cursor:pointer;">On making decisions under uncertainty <span style="color:var(--text-3);font-size:11px;">91 ❤️</span></div>
+        <div style="font-size:13px;color:var(--text);cursor:pointer;">Designing for emotional states <span style="color:var(--text-3);font-size:11px;">64 ❤️</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

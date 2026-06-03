@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agreement — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.agr-sidebar { width: 220px; }
+.agr-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.agr-nav-item:hover { background: var(--surface-2); color: var(--text); }
+.agr-nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.agr-count { margin-left: auto; font-size: 11px; background: var(--surface-2); padding: 1px 6px; border-radius: 10px; color: var(--text-3); }
+
+.agr-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 12px; cursor: pointer; transition: box-shadow .15s; }
+.agr-card:hover { box-shadow: var(--shadow); }
+.agr-card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.agr-icon { width: 40px; height: 40px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.agr-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.agr-type { font-size: 11px; color: var(--text-3); }
+.agr-status { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-active { background: var(--green); }
+.status-expiring { background: var(--amber); }
+.status-expired { background: var(--red); }
+.status-pending { background: #7C3AED; }
+.agr-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+.agr-detail { }
+.agr-detail-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.agr-detail-val { font-size: 13px; font-weight: 500; color: var(--text); }
+.agr-detail-val.warning { color: var(--amber); }
+.agr-detail-val.danger { color: var(--red); }
+
+.sub-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.sub-card:hover { box-shadow: var(--shadow-sm); }
+.sub-logo { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.sub-info { flex: 1; }
+.sub-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.sub-meta { font-size: 11px; color: var(--text-3); }
+.sub-price { font-size: 14px; font-weight: 600; color: var(--text); }
+.sub-cycle { font-size: 11px; color: var(--text-3); }
+
+.overview-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+.ov-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.ov-val { font-size: 22px; font-weight: 700; color: var(--text); }
+.ov-label { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🤝</span>
+      <div class="topbar-title">Agreement</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">All</div>
+      <div class="btn btn-ghost btn-sm">Contracts</div>
+      <div class="btn btn-ghost btn-sm">Subscriptions</div>
+      <div class="btn btn-ghost btn-sm">Obligations</div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm">+ New agreement</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar -->
+      <div class="sidebar agr-sidebar">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Status</div>
+          <div class="agr-nav-item active">📋 All agreements <span class="agr-count">14</span></div>
+          <div class="agr-nav-item">🟢 Active <span class="agr-count">9</span></div>
+          <div class="agr-nav-item">⚠️ Expiring soon <span class="agr-count" style="background:var(--amber-bg);color:var(--amber);">2</span></div>
+          <div class="agr-nav-item">🔴 Expired <span class="agr-count" style="background:var(--red-bg);color:var(--red);">1</span></div>
+          <div class="agr-nav-item">🟣 Pending <span class="agr-count">2</span></div>
+        </div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Type</div>
+          <div class="agr-nav-item">📄 Employment</div>
+          <div class="agr-nav-item">🏠 Lease / rental</div>
+          <div class="agr-nav-item">💼 Freelance / NDA</div>
+          <div class="agr-nav-item">📱 Subscriptions</div>
+          <div class="agr-nav-item">🤝 Personal obligations</div>
+          <div class="agr-nav-item">⚖️ Legal</div>
+        </div>
+        <div style="padding:12px 14px;">
+          <div class="sidebar-label" style="margin-bottom:10px;">Monthly subscriptions</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text);">$183.40</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px;">Across 8 services</div>
+          <div style="margin-top:8px;" class="progress">
+            <div class="progress-fill" style="width:60%;background:var(--amber);"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px;">60% of $300 budget</div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div style="flex:1;overflow-y:auto;padding:20px 28px;background:var(--bg);">
+        <!-- Overview stats -->
+        <div class="overview-stats">
+          <div class="ov-stat">
+            <div class="ov-val">9</div>
+            <div class="ov-label">Active agreements</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-val" style="color:var(--amber);">2</div>
+            <div class="ov-label">Expiring in 30 days</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-val">$183</div>
+            <div class="ov-label">Monthly sub cost</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-val">$2,196</div>
+            <div class="ov-label">Annual sub cost</div>
+          </div>
+        </div>
+
+        <!-- Contracts section -->
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Contracts & Obligations</div>
+
+        <div class="agr-card">
+          <div class="agr-card-header">
+            <div class="agr-icon" style="background:#DBEAFE;">💼</div>
+            <div style="flex:1;">
+              <div class="agr-title">Employment contract — Brandt & Co.</div>
+              <div class="agr-type">Employment · Full-time</div>
+            </div>
+            <div class="agr-status">
+              <div class="status-dot status-active"></div>
+              <span style="font-size:12px;color:var(--green);font-weight:500;">Active</span>
+            </div>
+          </div>
+          <div class="agr-details">
+            <div class="agr-detail">
+              <div class="agr-detail-label">Start date</div>
+              <div class="agr-detail-val">Mar 1, 2024</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">End date</div>
+              <div class="agr-detail-val">Open-ended</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">Notice period</div>
+              <div class="agr-detail-val">3 months</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="agr-card">
+          <div class="agr-card-header">
+            <div class="agr-icon" style="background:#F0FDF4;">🏠</div>
+            <div style="flex:1;">
+              <div class="agr-title">Apartment lease — 14 Viaduct Lane</div>
+              <div class="agr-type">Lease / Rental</div>
+            </div>
+            <div class="agr-status">
+              <div class="status-dot status-expiring"></div>
+              <span style="font-size:12px;color:var(--amber);font-weight:500;">Expiring Jun 30</span>
+            </div>
+          </div>
+          <div class="agr-details">
+            <div class="agr-detail">
+              <div class="agr-detail-label">Rent</div>
+              <div class="agr-detail-val">$1,400/mo</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">End date</div>
+              <div class="agr-detail-val warning">Jun 30, 2026</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">Decision by</div>
+              <div class="agr-detail-val warning">May 31</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="agr-card">
+          <div class="agr-card-header">
+            <div class="agr-icon" style="background:#EDE9FE;">📄</div>
+            <div style="flex:1;">
+              <div class="agr-title">NDA — Project Omega (Freelance)</div>
+              <div class="agr-type">NDA · Freelance</div>
+            </div>
+            <div class="agr-status">
+              <div class="status-dot status-active"></div>
+              <span style="font-size:12px;color:var(--green);font-weight:500;">Active</span>
+            </div>
+          </div>
+          <div class="agr-details">
+            <div class="agr-detail">
+              <div class="agr-detail-label">Signed</div>
+              <div class="agr-detail-val">Jan 15, 2026</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">Duration</div>
+              <div class="agr-detail-val">24 months</div>
+            </div>
+            <div class="agr-detail">
+              <div class="agr-detail-label">Expires</div>
+              <div class="agr-detail-val">Jan 15, 2028</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscriptions section -->
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px;margin-top:24px;">Subscriptions</div>
+
+        <div class="sub-card">
+          <div class="sub-logo">🌿</div>
+          <div class="sub-info">
+            <div class="sub-name">nTogether Premium (Tier 3)</div>
+            <div class="sub-meta">Renews May 22 · Credit card</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sub-price">$25.00</div>
+            <div class="sub-cycle">/ month</div>
+          </div>
+        </div>
+        <div class="sub-card">
+          <div class="sub-logo">🎵</div>
+          <div class="sub-info">
+            <div class="sub-name">Spotify Premium</div>
+            <div class="sub-meta">Renews Apr 28 · Credit card</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sub-price">$10.99</div>
+            <div class="sub-cycle">/ month</div>
+          </div>
+        </div>
+        <div class="sub-card">
+          <div class="sub-logo">🎬</div>
+          <div class="sub-info">
+            <div class="sub-name">Netflix Standard</div>
+            <div class="sub-meta">Renews May 3 · Credit card</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sub-price">$15.49</div>
+            <div class="sub-cycle">/ month</div>
+          </div>
+        </div>
+        <div class="sub-card">
+          <div class="sub-logo">☁️</div>
+          <div class="sub-info">
+            <div class="sub-name">iCloud+ 200GB</div>
+            <div class="sub-meta">Renews Apr 30 · Credit card</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sub-price">$2.99</div>
+            <div class="sub-cycle">/ month</div>
+          </div>
+        </div>
+        <div class="sub-card" style="border-color:var(--red);">
+          <div class="sub-logo">🏋️</div>
+          <div class="sub-info">
+            <div class="sub-name">FitLife Gym membership</div>
+            <div class="sub-meta" style="color:var(--red);">Renews Apr 25 · 1 day left!</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="sub-price">$45.00</div>
+            <div class="sub-cycle">/ month</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

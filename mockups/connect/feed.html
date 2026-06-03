@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feed — CONNECT</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.connect-sidebar { width: 220px; }
+.cn-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: var(--text-2); }
+.cn-item:hover { background: var(--surface-2); color: var(--text); }
+.cn-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.cn-badge { margin-left: auto; font-size: 11px; background: var(--accent); color: white; padding: 1px 6px; border-radius: 10px; }
+
+.feed-main { flex: 1; overflow-y: auto; }
+.feed-container { max-width: 640px; margin: 0 auto; padding: 20px 20px; }
+
+.post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.post-av { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: white; flex-shrink: 0; }
+.post-author-wrap { flex: 1; }
+.post-author { font-size: 13px; font-weight: 600; color: var(--text); }
+.post-handle { font-size: 11px; color: var(--text-3); }
+.post-source-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: .04em; }
+.source-ntogether { background: var(--accent-bg); color: var(--accent); }
+.source-fed { background: var(--surface-2); color: var(--text-3); }
+.post-time { font-size: 11px; color: var(--text-3); }
+.post-body { font-size: 14px; line-height: 1.75; color: var(--text); margin-bottom: 12px; }
+.post-media { border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
+.post-media-img { width: 100%; background: var(--surface-2); height: 240px; display: flex; align-items: center; justify-content: center; font-size: 48px; border-radius: var(--radius); border: 1px solid var(--border); }
+.post-link-preview { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; cursor: pointer; }
+.plp-img { height: 120px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.plp-content { padding: 10px 12px; }
+.plp-domain { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.plp-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.post-actions { display: flex; align-items: center; gap: 2px; border-top: 1px solid var(--border); padding-top: 10px; }
+.pa { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--text-3); cursor: pointer; font-weight: 500; }
+.pa:hover { background: var(--surface-2); color: var(--text); }
+.pa.liked { color: #E11D48; }
+.pa.bookmarked { color: var(--accent); }
+.compose-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+.compose-row { display: flex; gap: 10px; align-items: flex-start; }
+.compose-input { flex: 1; border: none; outline: none; font-size: 14px; font-family: var(--font); color: var(--text); resize: none; background: transparent; min-height: 60px; line-height: 1.6; }
+.compose-input::placeholder { color: var(--text-3); }
+.compose-actions { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.ca { padding: 4px 8px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-3); cursor: pointer; }
+.ca:hover { background: var(--surface-2); color: var(--text); }
+
+.feed-filter-bar { display: flex; gap: 4px; margin-bottom: 14px; }
+.ff { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); color: var(--text-2); background: var(--surface); }
+.ff.active { background: var(--text); color: white; border-color: var(--text); }
+.ff:hover { border-color: var(--text); }
+
+.right-col { width: 280px; flex-shrink: 0; overflow-y: auto; padding: 20px 16px; }
+.trending-item { padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.trending-item:last-child { border-bottom: none; }
+.trending-item:hover .tr-tag { text-decoration: underline; }
+.tr-num { font-size: 10px; color: var(--text-3); margin-bottom: 2px; }
+.tr-tag { font-size: 13px; font-weight: 600; color: var(--text); }
+.tr-count { font-size: 11px; color: var(--text-3); }
+.who-to-follow { }
+.wtf-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+.wtf-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: white; flex-shrink: 0; }
+.wtf-info { flex: 1; }
+.wtf-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.wtf-reason { font-size: 11px; color: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon" title="LIFE">🌿</div>
+    <div class="rail-icon active" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">🔗</span>
+      <div class="topbar-title">CONNECT</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm active" style="background:var(--surface-2);">Feed</div>
+      <div class="btn btn-ghost btn-sm">🎵 Music</div>
+      <div class="btn btn-ghost btn-sm">🎬 Video</div>
+      <div class="btn btn-ghost btn-sm">🎙 Podcasts</div>
+      <div class="btn btn-ghost btn-sm">Search</div>
+      <div class="topbar-right">
+        <input class="input" style="width:200px;font-size:12px;" placeholder="🔍 Search…">
+      </div>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Left sidebar -->
+      <div class="sidebar connect-sidebar">
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Feed</div>
+          <div class="cn-item active">🏠 Following <span class="cn-badge">12</span></div>
+          <div class="cn-item">🌍 Discovery</div>
+          <div class="cn-item">⭐ Saved</div>
+          <div class="cn-item">💬 Mentions</div>
+        </div>
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="sidebar-label">Filter by type</div>
+          <div class="cn-item">📝 Posts</div>
+          <div class="cn-item">✍️ Blog posts</div>
+          <div class="cn-item">🖼 Photos</div>
+          <div class="cn-item">🎵 Music shares</div>
+          <div class="cn-item">🎬 Videos</div>
+        </div>
+        <div style="padding:8px 0;">
+          <div class="sidebar-label">Lists</div>
+          <div class="cn-item">🎨 Designers</div>
+          <div class="cn-item">✍️ Writers</div>
+          <div class="cn-item">🎵 Musicians</div>
+          <div class="cn-item" style="color:var(--text-3);font-size:12px;padding-left:18px;">+ New list</div>
+        </div>
+      </div>
+
+      <!-- Main feed -->
+      <div class="feed-main">
+        <div class="feed-container">
+          <!-- Compose -->
+          <div class="compose-card">
+            <div class="compose-row">
+              <div class="post-av" style="background:#A16207;">A</div>
+              <textarea class="compose-input" placeholder="What's on your mind, Alex?"></textarea>
+            </div>
+            <div class="compose-actions">
+              <div class="ca">🖼 Photo</div>
+              <div class="ca">🎵 Music</div>
+              <div class="ca">🔗 Link</div>
+              <div class="ca">😊 Emoji</div>
+              <div style="margin-left:auto;">
+                <div class="btn" style="background:var(--accent);color:white;border-radius:20px;font-size:12px;padding:5px 14px;">Post</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter -->
+          <div class="feed-filter-bar">
+            <div class="ff active">All</div>
+            <div class="ff">Posts</div>
+            <div class="ff">Blog</div>
+            <div class="ff">Media</div>
+            <div class="ff">Federated 🌐</div>
+          </div>
+
+          <!-- Post 1 — text post -->
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-av" style="background:#2563EB;">J</div>
+              <div class="post-author-wrap">
+                <div class="post-author">Jamie Okafor <span class="post-source-badge source-ntogether">nTogether</span></div>
+                <div class="post-handle">@jamie · jamie.ntogether.com</div>
+              </div>
+              <div class="post-time">2h ago</div>
+              <div style="font-size:16px;cursor:pointer;color:var(--text-3);">⋯</div>
+            </div>
+            <div class="post-body">
+              Following Alex's blog post about decisions under uncertainty — have you ever used formal frameworks for big life calls? Things like weighted matrices, pros/cons spreadsheets, or just gut feel?<br><br>
+              Asking because I'm facing something similar and genuinely unsure whether structure helps or just gives you a false sense of control.
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:12px;">
+              <span class="tag" style="background:var(--surface-2);color:var(--text-2);border-radius:10px;font-size:11px;padding:2px 10px;">#decisions</span>
+              <span class="tag" style="background:var(--surface-2);color:var(--text-2);border-radius:10px;font-size:11px;padding:2px 10px;">#life</span>
+            </div>
+            <div class="post-actions">
+              <div class="pa liked">❤️ 48</div>
+              <div class="pa">💬 14</div>
+              <div class="pa">🔄 8</div>
+              <div class="pa bookmarked" style="margin-left:auto;">🔖</div>
+            </div>
+          </div>
+
+          <!-- Post 2 — photo post -->
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-av" style="background:#16A34A;">L</div>
+              <div class="post-author-wrap">
+                <div class="post-author">Lena Bruns <span class="post-source-badge source-ntogether">nTogether</span></div>
+                <div class="post-handle">@lena · lena.ntogether.com</div>
+              </div>
+              <div class="post-time">4h ago</div>
+              <div style="font-size:16px;cursor:pointer;color:var(--text-3);">⋯</div>
+            </div>
+            <div class="post-body">Golden hour on the Elbe. Shot on Fuji XT-5. No edits.</div>
+            <div class="post-media-img">🌅</div>
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">📸 Hosted on lena.ntogether.com · Original file: 28MP RAW available</div>
+            <div class="post-actions">
+              <div class="pa">❤️ 142</div>
+              <div class="pa">💬 22</div>
+              <div class="pa">🔄 31</div>
+              <div class="pa" style="margin-left:auto;">🔖</div>
+            </div>
+          </div>
+
+          <!-- Post 3 — blog link -->
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-av" style="background:#7C3AED;">M</div>
+              <div class="post-author-wrap">
+                <div class="post-author">Miriam Chen <span class="post-source-badge source-ntogether">nTogether</span></div>
+                <div class="post-handle">@miriam · miriam.ntogether.com</div>
+              </div>
+              <div class="post-time">Yesterday</div>
+              <div style="font-size:16px;cursor:pointer;color:var(--text-3);">⋯</div>
+            </div>
+            <div class="post-body">My talk slides from the UX conference are now live on my SPACE. Including the full research on emotional state design that I only had 10 minutes to cover in the talk.</div>
+            <div class="post-link-preview">
+              <div class="plp-img">🎨</div>
+              <div class="plp-content">
+                <div class="plp-domain">miriam.ntogether.com</div>
+                <div class="plp-title">Designing for Emotional States, Not Tasks — Full Research + Slides</div>
+              </div>
+            </div>
+            <div class="post-actions">
+              <div class="pa">❤️ 214</div>
+              <div class="pa">💬 38</div>
+              <div class="pa">🔄 67</div>
+              <div class="pa liked" style="margin-left:auto;">🔖</div>
+            </div>
+          </div>
+
+          <!-- Post 4 — federated -->
+          <div class="post-card" style="border-color:#DDD8EA;">
+            <div class="post-header">
+              <div class="post-av" style="background:#DC2626;">R</div>
+              <div class="post-author-wrap">
+                <div class="post-author">Ryan Park <span class="post-source-badge source-fed">🌐 Mastodon</span></div>
+                <div class="post-handle">@ryan@mastodon.social</div>
+              </div>
+              <div class="post-time">2d ago</div>
+              <div style="font-size:16px;cursor:pointer;color:var(--text-3);">⋯</div>
+            </div>
+            <div class="post-body">
+              New track is live. Six months of writing, three takes. The third take was it.<br><br>
+              Stream it anywhere — or directly on my SPACE where I host the lossless version.
+            </div>
+            <div style="background:var(--surface-2);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+              <div style="width:40px;height:40px;border-radius:4px;background:linear-gradient(135deg,#c94b4b,#4b134f);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎵</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">Ordinary Hours</div>
+                <div style="font-size:11px;color:var(--text-3);">Ryan Park · 4:22</div>
+              </div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">▶ Play</div>
+            </div>
+            <div class="post-actions">
+              <div class="pa">❤️ 88</div>
+              <div class="pa">💬 12</div>
+              <div class="pa">🔄 24</div>
+              <div class="pa" style="margin-left:auto;">🔖</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="right-col">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">Trending in your network</div>
+          <div class="trending-item">
+            <div class="tr-num">1 · Design</div>
+            <div class="tr-tag">#EmotionalDesign</div>
+            <div class="tr-count">142 posts this week</div>
+          </div>
+          <div class="trending-item">
+            <div class="tr-num">2 · Life</div>
+            <div class="tr-tag">#DecisionMaking</div>
+            <div class="tr-count">88 posts this week</div>
+          </div>
+          <div class="trending-item">
+            <div class="tr-num">3 · Music</div>
+            <div class="tr-tag">#CourtneybarnettNT</div>
+            <div class="tr-count">54 posts this week</div>
+          </div>
+          <div class="trending-item">
+            <div class="tr-num">4 · Running</div>
+            <div class="tr-tag">#HalfMarathonTraining</div>
+            <div class="tr-count">36 posts this week</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Who to follow</div>
+          <div class="who-to-follow">
+            <div class="wtf-item">
+              <div class="wtf-av" style="background:#065F46;">E</div>
+              <div class="wtf-info">
+                <div class="wtf-name">Elena Vasquez</div>
+                <div class="wtf-reason">Followed by Lena + Miriam</div>
+              </div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">Follow</div>
+            </div>
+            <div class="wtf-item">
+              <div class="wtf-av" style="background:#9D174D;">F</div>
+              <div class="wtf-info">
+                <div class="wtf-name">Freya Andersen</div>
+                <div class="wtf-reason">Design · 3 mutuals</div>
+              </div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">Follow</div>
+            </div>
+            <div class="wtf-item">
+              <div class="wtf-av" style="background:#1E3A5F;">T</div>
+              <div class="wtf-info">
+                <div class="wtf-name">Thomas Brauer</div>
+                <div class="wtf-reason">Works at Brandt & Co.</div>
+              </div>
+              <div class="btn" style="border:1px solid var(--border);border-radius:20px;font-size:12px;padding:4px 12px;">Follow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

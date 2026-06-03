@@ -1,0 +1,876 @@
+# nTogether Platform — Implementation Plan
+
+## Context
+
+Building a privacy-first, decentralized social media ecosystem from a blank repo. The user wants full ownership of personal data, zero server-side logs, and an open-source architecture. The plan covers the full platform terminology and maps out the complete monorepo, but **this session focuses on building the ENGINE service end-to-end** (Go backend + React frontend + Docker) as the identity/federation foundation that every other platform depends on.
+
+---
+
+## Core Purpose (User Clarification)
+
+> "THE POINT OF CREATING SUCH AN ENORMOUS PLATFORM IS TO GIVE THE USER CONTROL AND STATISTICS OVER THEIR DATA."
+
+Every platform collects data. That data lives in a personal data store the user fully controls. The data app (see LENS below) is the endgame — a query and analytics layer over the user's own life data. Everything else feeds into it.
+
+---
+
+## Naming Suggestions (User Requested)
+
+| Temp Name | Suggestions |
+|-----------|-------------|
+| BOARD | **AGORA** (Greek marketplace of ideas), COMMONS, NEXUS |
+| Calendar + Routine + Journal (combined) | **TEMPO** ✓ |
+| Store (algorithms) | **EXCHANGE**, MARKET, FORGE |
+| Data query app | **LENS** (you look at your data through it), PRISM, ATLAS |
+
+---
+
+## Tech Stack
+
+- **Backend**: Go 1.22+ with `go-chi/chi` router (lightweight, idiomatic, no magic)
+- **Query layer**: `sqlc` — generates type-safe Go from SQL, no ORM magic
+- **Database**: PostgreSQL 16
+- **Cache / Pub-Sub**: Redis 7
+- **Frontend**: React 18 + TypeScript + Vite
+- **State**: Zustand (auth store) + TanStack Query (server state)
+- **Monorepo**: Go workspaces (`go.work`) + pnpm workspaces (`pnpm-workspace.yaml`)
+- **Deployment**: Docker Compose (self-hosted) + prod variant for cloud
+- **Hot reload**: Air (Go), Vite HMR (React)
+- **Federation**: ActivityPub protocol (WebFinger + HTTP Signatures)
+- **Auth**: JWT access tokens + refresh tokens, bcrypt passwords, no third-party providers
+
+---
+
+## Monorepo Structure
+
+```
+nTogether/
+├── services/
+│   └── engine/              ← BUILD THIS SESSION
+│       ├── main.go
+│       ├── go.mod
+│       ├── Dockerfile
+│       ├── .air.toml
+│       ├── config/
+│       │   ├── config.go
+│       │   └── env.go
+│       ├── db/
+│       │   ├── migrations/  (7 SQL migration files)
+│       │   ├── queries/     (6 SQL query files)
+│       │   ├── sqlc.yaml
+│       │   └── gen/         (sqlc-generated, committed)
+│       ├── internal/
+│       │   ├── server/      (server.go, routes.go)
+│       │   ├── middleware/  (auth, logger, ratelimit, cors)
+│       │   ├── handlers/    (auth, spaces, connections, transfers, ap, ws)
+│       │   ├── models/      (space.go domain model)
+│       │   └── services/    (auth, space, connection, transfer, federation, cache, crypto)
+│       ├── pkg/
+│       │   ├── apub/        (ActivityPub types + HTTP signatures)
+│       │   └── httputil/    (JSON helpers)
+│       └── internal/store/  (postgres.go, redis.go)
+├── apps/
+│   └── engine-ui/           ← BUILD THIS SESSION (React)
+│       ├── package.json
+│       ├── vite.config.ts
+│       ├── index.html
+│       └── src/
+│           ├── main.tsx
+│           ├── router/
+│           ├── store/       (auth.ts — Zustand)
+│           ├── api/         (client.ts, auth.ts, spaces.ts, connections.ts, transfers.ts)
+│           ├── pages/       (Dashboard, Login, Register, Profile, Connections, Federation)
+│           ├── components/  (Layout, SpaceCard, Navbar)
+│           └── hooks/       (useWebSocket.ts)
+├── packages/                ← scaffold for future shared code
+│   ├── types/               (shared TypeScript types)
+│   └── ui/                  (shared React components)
+├── infra/
+│   ├── nginx/nginx.conf
+│   └── scripts/generate-keys.sh
+├── go.work
+├── pnpm-workspace.yaml
+├── package.json             (root scripts)
+├── docker-compose.yml       (dev)
+├── docker-compose.prod.yml  (cloud)
+├── .env.example
+├── Makefile
+└── README.md
+```
+
+Future services (scaffold directories, not implemented this session):
+`services/myspace/`, `services/mylife/`, `services/board/` (AGORA), `services/hub/`, `services/cloud/`, `services/messenger/`, `services/lens/`
+
+Native apps (future phases, scaffold now):
+```
+native/
+├── desktop/          ← Tauri 2 (Rust + React) — Windows/Mac/Linux
+│   ├── tempo/        Calendar + Routine + Journal + Dashboard
+│   ├── contacts/     Contact organizer
+│   └── lens/         Personal data query app (desktop)
+└── mobile/           ← Expo (React Native) — iOS + Android
+    ├── tempo/        Calendar + Routine + Journal + Dashboard
+    ├── contacts/     Contacts
+    └── lens/         Data viewer + export (mobile)
+```
+
+---
+
+## Database Schema (7 migrations)
+
+### `001_create_spaces.sql`
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE TABLE spaces (
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    handle        TEXT UNIQUE NOT NULL,
+    display_name  TEXT NOT NULL,
+    email_hash    TEXT UNIQUE NOT NULL,   -- bcrypt hash, never plain
+    password_hash TEXT NOT NULL,
+    public_key    TEXT NOT NULL,
+    private_key   TEXT NOT NULL,          -- RSA key for AP HTTP signatures
+    is_local      BOOLEAN NOT NULL DEFAULT TRUE,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### `002_create_sessions.sql`
+```sql
+CREATE TABLE sessions (
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    space_id      UUID NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+    refresh_token TEXT UNIQUE NOT NULL,
+    expires_at    TIMESTAMPTZ NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_sessions_space_id ON sessions(space_id);
+CREATE INDEX idx_sessions_refresh_token ON sessions(refresh_token);
+```
+
+### `003_create_connections.sql`
+```sql
+CREATE TYPE connection_status AS ENUM ('pending', 'accepted', 'rejected', 'blocked');
+CREATE TYPE connection_type AS ENUM ('follow', 'friend', 'block');
+CREATE TABLE connections (
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    from_space_id UUID REFERENCES spaces(id) ON DELETE CASCADE,
+    to_space_id   UUID REFERENCES spaces(id) ON DELETE CASCADE,
+    from_ap_actor TEXT,    -- for remote/federated actors
+    conn_type     connection_type NOT NULL DEFAULT 'follow',
+    status        connection_status NOT NULL DEFAULT 'pending',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(from_space_id, to_space_id, conn_type)
+);
+```
+
+### `004_create_transfers.sql`
+```sql
+CREATE TYPE transfer_status AS ENUM ('pending', 'accepted', 'cancelled', 'expired');
+CREATE TABLE transfers (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    from_space_id   UUID NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+    to_space_id     UUID REFERENCES spaces(id) ON DELETE CASCADE,
+    to_ap_actor     TEXT,
+    payload_enc     TEXT NOT NULL,   -- AES-256 encrypted payload
+    status          transfer_status NOT NULL DEFAULT 'pending',
+    expires_at      TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '24 hours',
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    -- NO updated_at — row is deleted on accept/cancel, not updated
+);
+-- Transfers are DELETED after accept or cancel. No audit log. By design.
+```
+
+### `005_create_ap_actors.sql`
+```sql
+CREATE TABLE ap_actors (
+    id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ap_id              TEXT UNIQUE NOT NULL,
+    actor_type         TEXT NOT NULL DEFAULT 'Person',
+    preferred_username TEXT NOT NULL,
+    inbox_url          TEXT NOT NULL,
+    outbox_url         TEXT,
+    public_key_pem     TEXT NOT NULL,
+    raw_data           JSONB,
+    fetched_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### `006_create_ap_activities.sql`
+```sql
+CREATE TABLE ap_activities (
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ap_id       TEXT UNIQUE NOT NULL,
+    actor_id    TEXT NOT NULL,
+    type        TEXT NOT NULL,
+    object_raw  JSONB NOT NULL,
+    direction   TEXT NOT NULL CHECK (direction IN ('inbound', 'outbound')),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- These are purged on a rolling basis per privacy policy
+```
+
+### `007_indexes.sql`
+```sql
+CREATE INDEX idx_spaces_handle ON spaces(handle);
+CREATE INDEX idx_connections_from ON connections(from_space_id);
+CREATE INDEX idx_connections_to ON connections(to_space_id);
+CREATE INDEX idx_transfers_to ON transfers(to_space_id);
+CREATE INDEX idx_transfers_expires ON transfers(expires_at);
+CREATE INDEX idx_ap_actors_ap_id ON ap_actors(ap_id);
+```
+
+---
+
+## ENGINE API Routes
+
+```
+POST   /api/v1/auth/register       Register (create SPACE)
+POST   /api/v1/auth/login          Login → access + refresh tokens
+POST   /api/v1/auth/refresh        Refresh access token
+DELETE /api/v1/auth/logout         Revoke refresh token
+DELETE /api/v1/auth/logout-all     Revoke all sessions
+
+GET    /api/v1/me                  Get own SPACE profile
+PUT    /api/v1/me                  Update display name
+DELETE /api/v1/me                  Deactivate (GDPR delete)
+
+GET    /api/v1/spaces/:handle      Get public SPACE by handle
+
+POST   /api/v1/connections/follow/:handle    Follow a SPACE
+DELETE /api/v1/connections/follow/:handle    Unfollow
+PUT    /api/v1/connections/:id/accept        Accept follow request
+PUT    /api/v1/connections/:id/reject        Reject follow request
+GET    /api/v1/connections/followers         List my followers
+GET    /api/v1/connections/following         List who I follow
+
+POST   /api/v1/transfers           Initiate transfer (ephemeral, encrypted)
+GET    /api/v1/transfers/:id       Get transfer status
+PUT    /api/v1/transfers/:id/accept Accept + decrypt + DELETE record
+DELETE /api/v1/transfers/:id       Cancel + DELETE record
+
+GET    /ws                         WebSocket (real-time notifications)
+
+# ActivityPub / Federation
+GET    /.well-known/webfinger      WebFinger discovery
+GET    /ap/users/:handle           AP Actor JSON
+GET    /ap/users/:handle/inbox     GET inbox (collection)
+POST   /ap/users/:handle/inbox     Receive AP activity (Follow, Undo, etc.)
+GET    /ap/users/:handle/outbox    GET outbox
+GET    /ap/users/:handle/followers Followers collection
+GET    /ap/users/:handle/following Following collection
+```
+
+---
+
+## Key Go Services
+
+| Service | Responsibility |
+|---------|---------------|
+| `AuthService` | Register/login, JWT issue/verify, session management, bcrypt |
+| `SpaceService` | CRUD for local SPACE profiles, cache invalidation |
+| `ConnectionService` | Follow/unfollow, accept/reject, list with pagination |
+| `TransferService` | Encrypted ephemeral data transfer; DELETE on accept/cancel |
+| `FederationService` | ActivityPub actor fetch, inbox processing, outbox delivery, HTTP signatures |
+| `CryptoService` | RSA key generation per SPACE, sign/verify, AES-256 encrypt/decrypt |
+| `CacheService` | Redis get/set/delete/pub-sub, rate limiting |
+
+---
+
+## React Frontend Pages
+
+| Route | Page | Purpose |
+|-------|------|---------|
+| `/` | Dashboard | Quick stats: connections, pending transfers |
+| `/login` | Login | JWT auth form |
+| `/register` | Register | Create SPACE (handle, email hash, password) |
+| `/profile` | Profile | View/edit own SPACE, see AP identity |
+| `/connections` | Connections | Follow/unfollow, follower/following lists |
+| `/transfers` | Transfers | Initiate/accept/cancel ephemeral transfers |
+| `/federation` | Federation | AP actor JSON, WebFinger URL, how to follow from Mastodon |
+
+Protected routes wrapped in auth guard (redirect to `/login` if no valid JWT).
+
+---
+
+## Docker Compose (dev)
+
+Services:
+- `db` — postgres:16-alpine, port 5432, volume `pgdata`
+- `redis` — redis:7-alpine, port 6379, AOF persistence
+- `engine` — Go service, port 8080, hot-reload with Air
+- `engine-ui` — Vite dev server, port 5173, proxies `/api` and `/ws` to engine
+
+---
+
+## Critical Files to Create (in order)
+
+1. `/.gitignore`, `/.env.example`, `/go.work`, `/pnpm-workspace.yaml`, `/Makefile`
+2. `/docker-compose.yml`
+3. `/services/engine/go.mod` + `main.go`
+4. `/services/engine/config/config.go`
+5. `/services/engine/db/migrations/*.sql` (all 7)
+6. `/services/engine/db/sqlc.yaml` + queries
+7. Run `sqlc generate` → `db/gen/`
+8. `/services/engine/pkg/apub/*.go` (AP types + HTTP sigs)
+9. `/services/engine/pkg/httputil/response.go`
+10. `/services/engine/internal/services/*.go` (all 7 services)
+11. `/services/engine/internal/middleware/*.go` (auth, logger, ratelimit, cors)
+12. `/services/engine/internal/handlers/*.go` (all handlers)
+13. `/services/engine/internal/server/server.go` + `routes.go`
+14. `/apps/engine-ui/package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`
+15. `/apps/engine-ui/src/**` (all React files)
+16. `/infra/nginx/nginx.conf`
+17. `/packages/types/index.ts` (shared TS types scaffold)
+
+---
+
+## Verification Steps
+
+1. `docker compose up --build` — all containers start, migrations run
+2. `POST /api/v1/auth/register` with `{"handle":"alice","email":"alice@test.com","password":"testpassword123","display_name":"Alice"}` → 201 with tokens
+3. `POST /api/v1/auth/login` → 200 with new tokens
+4. `GET /api/v1/me` with Bearer token → returns SPACE profile
+5. `GET /.well-known/webfinger?resource=acct:alice@localhost` → returns AP links
+6. `GET /ap/users/alice` with `Accept: application/activity+json` → returns Actor JSON
+7. Follow `@alice@localhost` from Mastodon (or use curl to POST a Follow activity to `/ap/users/alice/inbox`) → ENGINE sends back Accept
+8. `POST /api/v1/transfers` → 201, `PUT /api/v1/transfers/:id/accept` → 200, `GET /api/v1/transfers/:id` → 404 (deleted)
+9. Open `http://localhost:5173` → Login page renders, register flow works, dashboard shows
+10. WebSocket connects at `/ws`, auth token passed, ping/pong works
+
+---
+
+## MYLIFE Native App Architecture
+
+### Platform Targets
+- **Desktop**: Tauri 2.0 (Rust shell + React frontend) — Windows, Mac, Linux
+  - Small binaries (~10MB vs Electron's ~200MB), privacy-aligned, no Chromium bundled
+  - React frontend shares components/logic with the web apps
+- **Mobile**: Expo (React Native) — iOS + Android
+  - Shares business logic, types, and API calls with desktop/web
+
+### Native App Suite (under `native/`)
+
+#### TEMPO — Calendar + Routine + Journal + Dashboard
+
+The app has four integrated sections tied together by a central dashboard. All data is local-first (SQLite on device), syncs to the user's own server via encrypted API, and feeds LENS.
+
+---
+
+##### Section 1 — Calendar & Schedule
+
+- **Views**: Day, Week, Month, Agenda
+- **Event creation**:
+  - Title, date/time, duration
+  - **Type tags**: Work, Fun, Date, Errand, Entertainment, Exercise, Learning, Project, Other (user can create custom tags)
+  - **People tags**: pulled from Contacts app + connected SPACE users; shown with avatar on event
+  - **Estimated time** and **estimated cost/earnings** (entered at creation)
+  - **To-Do events**: a special event type with a checklist; budget/time estimate; appears in a dedicated To-Do list view
+- **To-Do list view**: all to-do events in one scrollable list, sortable by due date, tag, or priority
+- **Event lifecycle tracking**:
+  - User taps **Start** → timer begins, status = Active
+  - User taps **Break** → timer pauses, status = Paused; break duration tracked
+  - User taps **Finish** → timer stops, actual duration recorded; auto-triggers Section 3a reflection prompt
+  - Alerts offered at each transition
+- **Reminders**: optional, configurable per event (e.g. 15 min before, 1 hour before, day before)
+- **Routine blocks**: appear as recurring calendar entries pushed from Section 2
+
+---
+
+##### Section 2 — Routine Builder
+
+Users design recurring routines that auto-populate the calendar as recurring blocks.
+
+**Routine entry fields**:
+- Activity name
+- Category: Hobby / Exercise / Learning / Project / Health / Social / Other
+- Goal description (optional free text)
+- **Planning mode** (user chooses one):
+  - *Weekly total*: "I want to spend X hours/week on this" → app distributes sessions across available days
+  - *Session-based*: "X times per week, Y minutes per session" → app schedules specific slots
+  - *Fixed slots*: User manually picks specific days and times → app locks those in
+- Expected duration per session (used for calendar block sizing)
+
+**Routine → Calendar sync**:
+- Once saved, routine auto-populates recurring calendar blocks based on frequency and time settings
+- User can drag/adjust individual instances without breaking the recurring rule
+- Skipping one instance does not affect future recurrences
+- Routine blocks are visually distinct from manual events on the calendar
+
+**Routine management**:
+- Active routines listed with weekly progress bar (sessions completed vs. target)
+- Pause, edit, or archive a routine at any time
+- Streak tracking per routine (feeds LENS)
+
+---
+
+##### Section 3 — Journal & Log
+
+Two complementary logging modes: quick per-event reflections and a nightly full-day entry.
+
+**3a — Activity Reflection** *(auto-prompted when user finishes an event)*
+
+Compact, fast to complete:
+- **Mood tags**: emoji selector for Before / During / After (user picks 1–3 emojis per phase)
+- **Thumbs up / down**: overall quick verdict on the activity
+- **Time variance**: Was the time used? → On time / Ran over / Finished early; if over/under, enter actual duration
+- **Quick notes**: short free-text field
+- **Financial entry** (shown based on event type):
+  - Work events → "How much did you earn?" (amount + currency)
+  - Errand / Entertainment events → "How much did you spend?" (amount + category)
+  - Other types → financial field hidden by default
+
+**3b — Nightly Journal Entry** *(user-initiated; prompted each evening if enabled)*
+
+- **Day summary**: quick emoji/mood tag for the overall day
+- **Highlight of the day**: short text field
+- **Scheduled event review**: scrollable list of today's events, each with a compact reflection widget (same as 3a, pre-filled if already completed; fillable here if not)
+- **Long-form entry**: full rich-text editor for extended journaling — no length limit, supports headings, lists, bold/italic
+- **Day rating**: 1–5 scale (feeds LENS for trend charts)
+- Optional **tomorrow's intentions**: brief free-text for what the user wants to focus on
+
+---
+
+##### Dashboard
+
+Single-screen overview shown on app open:
+
+- **Today's schedule**: timeline strip of today's events with status indicators
+- **Active routines**: mini progress bars for weekly routine targets
+- **Streak highlights**: top 3 active streaks
+- **Journal status**: prompt if nightly entry not yet completed
+- **Financial snapshot**: today's earnings vs. spending (from reflection entries)
+- **Quick-add button**: fast-path to create an event, add a routine, or write a journal note from anywhere in the app
+
+---
+
+##### Data Model (SQLite, local-first)
+
+```sql
+-- Events (calendar + to-dos)
+CREATE TABLE events (
+    id               TEXT PRIMARY KEY,
+    title            TEXT NOT NULL,
+    type_tag         TEXT NOT NULL,           -- work, fun, date, errand, etc.
+    start_time       DATETIME,
+    end_time         DATETIME,
+    estimated_mins   INTEGER,
+    estimated_cost   REAL,
+    is_todo          BOOLEAN DEFAULT FALSE,
+    status           TEXT DEFAULT 'upcoming', -- upcoming, active, paused, finished
+    routine_id       TEXT REFERENCES routines(id),
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- People tagged on events
+CREATE TABLE event_people (
+    event_id         TEXT REFERENCES events(id),
+    contact_id       TEXT,   -- local Contacts app ID
+    space_handle     TEXT,   -- ENGINE SPACE handle (if linked)
+    display_name     TEXT NOT NULL
+);
+
+-- Event time tracking
+CREATE TABLE event_tracking (
+    id               TEXT PRIMARY KEY,
+    event_id         TEXT REFERENCES events(id),
+    started_at       DATETIME,
+    finished_at      DATETIME,
+    actual_mins      INTEGER,
+    pauses           JSON    -- [{paused_at, resumed_at}, ...]
+);
+
+-- Routines
+CREATE TABLE routines (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    category         TEXT NOT NULL,
+    goal_description TEXT,
+    planning_mode    TEXT NOT NULL,  -- weekly_total, session_based, fixed_slots
+    weekly_target_mins INTEGER,
+    sessions_per_week  INTEGER,
+    mins_per_session   INTEGER,
+    is_active        BOOLEAN DEFAULT TRUE,
+    streak_days      INTEGER DEFAULT 0,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Activity reflections (3a)
+CREATE TABLE activity_reflections (
+    id               TEXT PRIMARY KEY,
+    event_id         TEXT REFERENCES events(id),
+    thumbs           TEXT,   -- 'up' | 'down'
+    mood_before      JSON,   -- ["😴", "😬"]
+    mood_during      JSON,
+    mood_after       JSON,
+    time_variance    TEXT,   -- 'on_time' | 'over' | 'under'
+    actual_mins      INTEGER,
+    notes            TEXT,
+    money_earned     REAL,
+    money_spent      REAL,
+    spend_category   TEXT,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Nightly journal entries (3b)
+CREATE TABLE journal_entries (
+    id               TEXT PRIMARY KEY,
+    entry_date       DATE NOT NULL UNIQUE,
+    day_mood         TEXT,   -- emoji
+    highlight        TEXT,
+    long_form        TEXT,
+    day_rating       INTEGER CHECK (day_rating BETWEEN 1 AND 5),
+    tomorrow_intentions TEXT,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+##### LENS Data Emitted
+
+Every completed event, reflection, routine session, and journal entry emits a record to the LENS unified event log, enabling:
+- Mood trend charts over time
+- Time-spent-per-category breakdowns
+- Earnings vs. spending summaries
+- Routine streak and adherence graphs
+- Correlation queries (e.g. "how does my mood relate to exercise frequency?")
+
+---
+
+#### Contacts
+- Local contact store (vCard/JSON, SQLite)
+- Links contacts to SPACE handles (ENGINE identity)
+- Privacy mode: contacts never leave the device unless user explicitly exports
+
+#### LENS — Personal Data App (native + web)
+Runs as: a native desktop/mobile app AND via the user's own MYSPACE website.
+- **Data aggregation**: Pulls data from all installed platforms (CADENCE events, COMPASS goals, CHRONICLE entries, connection activity, etc.)
+- **Personal data warehouse**: Local SQLite (native) or PostgreSQL (self-hosted server)
+- **SQL Explorer**: Full SQL editor against the user's data schema, with autocomplete
+- **AI Natural Language Queries**: Type plain English → AI generates SQL → executes → displays results. Uses Claude API (configurable) or a local LLM (Ollama)
+- **Visual Analytics**: Pre-built and user-configurable charts (habits streak, schedule heatmap, goal progress, social network graph)
+- **Data Export**: Full export as JSON, CSV, or SQLite database file at any time
+- **No data leaves the device** unless user explicitly syncs to their self-hosted server
+
+### Data Schema for LENS
+Each platform writes to a local SQLite database following a shared schema:
+```sql
+-- Every platform emits events in this shape
+CREATE TABLE events (
+    id         TEXT PRIMARY KEY,
+    source     TEXT NOT NULL,    -- 'cadence', 'compass', 'engine', etc.
+    type       TEXT NOT NULL,    -- 'calendar.event', 'goal.completed', etc.
+    payload    JSON NOT NULL,
+    recorded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+LENS reads from this unified event log to power all query and analytics features.
+
+---
+
+## Future Phases (after ENGINE is running)
+
+| Phase | Platform | Key Features |
+|-------|----------|-------------|
+| 2 | MYSPACE | BUILDSPACE site builder (PURPOSE → THEME → Pages/Blocks/Modules), ActivityPub-powered profiles |
+| 3 | AGORA (BOARD) | Lemmy-style communities, federated posts, voting |
+| 4a | MYLIFE — native desktop | Tauri 2: TEMPO (calendar + routine + journal + dashboard), Contacts |
+| 4b | MYLIFE — native mobile | Expo (React Native): TEMPO + Contacts for iOS/Android |
+| 5 | LENS (web + native) | Personal data warehouse; SQL explorer, AI natural language queries, visual analytics, full data export |
+| 6 | MESSENGER | E2E encrypted chat using libsodium/NaCl, Signal Protocol |
+| 7 | CLOUD | MinIO-backed personal file storage, media archiver (yt-dlp integration) |
+| 8 | HUB | Cross-SPACE search, creator/advertiser matching, EXCHANGE (algorithm marketplace) |
+| 9 | DASH | Unified customizable dashboard aggregating metrics from all platforms via LENS |
+| 10 | BROWSER | Chromium-based browser with archive plugin, CLOUD integration, LENS data capture |
+
+### Why LENS is Phase 5 (not last)
+Every app built after Phase 5 will be designed to emit events to the LENS data schema from day one. This means the data layer grows organically as the platform expands, and users have query/analytics access to everything from the start.
+
+---
+
+## MYSPACE — Detailed Design
+
+### Site Architecture
+
+```
+SITE
+└── PAGE(s)
+    └── BLOCK(s)         ← preloaded display sections; can be traded via STORE
+        └── MODULE(s)    ← individual content elements inside a block;
+                            user adjusts position, orientation, size
+```
+
+- A **SITE** is the user's full SPACE website.
+- A **PAGE** is a named section of the site (Profile, About, Media, etc.).
+- A **BLOCK** is a self-contained display area on a page. Blocks have preloaded features and display options. Community-created and custom blocks can be bought/traded through the **STORE**.
+- A **MODULE** is the smallest unit — an image, text field, stat counter, button, etc. Users control the position and orientation of modules within their block.
+
+---
+
+### BUILDSPACE — Site Design Flow
+
+```
+PURPOSE(S) selected
+    ↓
+USE(S) selected (narrows template pool)
+    ↓
+THEME selected (color palette, typography, spacing)
+    ↓
+PAGE TEMPLATES presented (filtered by PURPOSE + USE)
+    ↓
+User customizes Pages → Blocks → Modules
+```
+
+- Multiple PURPOSEs and USEs can be selected simultaneously (e.g., Personal + Content Creation).
+- Templates are HTML/CSS layouts pre-matched to the chosen combination.
+- The global THEME applies to all pages by default; each page can independently override its theme.
+- All templates and themes are fully customizable after selection.
+
+---
+
+### THEME System
+
+A Theme defines:
+- **Color palette** (primary, secondary, accent, background, surface, text)
+- **Typography** (heading font, body font, sizes, weights)
+- **Spacing** (base unit, section padding)
+- **Border radius** (sharp → rounded → pill)
+- **Motion** (none / subtle / expressive)
+
+Theme scope:
+- **Global** — applies site-wide (default)
+- **Per-page override** — user can assign a different theme to any individual page
+
+---
+
+### PURPOSE & USE Taxonomy
+
+#### Personal
+| USE | Description |
+|-----|-------------|
+| Social Networking | Connect, share updates, interact with others |
+| Professional Networking | Career, skills, work history |
+| Keeping in Touch | Private sharing with close contacts |
+| Saving Memories | Scrapbook-style archiving of moments |
+| Blog | Written long-form content for an audience |
+| **Family Connections** *(pending approval)* | Private family hub, family tree, shared albums |
+| **Learning Journal** *(pending approval)* | Notes, books read, courses taken, skill tracking |
+| **Travel Diary** *(pending approval)* | Places visited, trip journals, maps |
+
+#### Content Creation
+| USE | Description |
+|-----|-------------|
+| Podcast | Episode library, show notes, subscribe links |
+| Portfolio | Work showcase with project case studies |
+| Music | Tracks, albums, tour dates, Bandcamp-style |
+| Pundit | Opinion, commentary, political/cultural writing |
+| Influencer | Brand-friendly feed, sponsored content, stats |
+| Video | YouTube-style channel with episodes and playlists |
+| Writing | Fiction, essays, serialized stories |
+| Blog | Article-based content with categories and tags |
+| Shop | Merch, digital products, direct sales |
+| **Photography** *(pending approval)* | Gallery-forward with EXIF data, print sales |
+| **Art / Illustration** *(pending approval)* | Portfolio + commission requests + process posts |
+| **Gaming / Streaming** *(pending approval)* | Clip library, schedule, VODs, Discord links |
+| **Newsletter** *(pending approval)* | Email list with subscribe widget, issue archive |
+| **Education / Courses** *(pending approval)* | Lesson library, student community, paid access |
+| **Film & TV Reviews** *(pending approval)* | Ratings, watch lists, review articles |
+
+#### Business
+| USE | Description |
+|-----|-------------|
+| Bar / Restaurant | Menu, hours, reservations, gallery |
+| Retail | Store info, product showcase, directions |
+| Service | Service list, pricing, booking/contact |
+| Online Shop | Full e-commerce (integrates with STORE) |
+| Tech Enterprise | Product pages, team, press kit |
+| Start-up | Pitch deck, team, investor contact, roadmap |
+| Portfolio | Agency/studio showcase |
+| Venture Capitalist | Portfolio companies, thesis, contact |
+| **Nonprofit / Charity** *(pending approval)* | Mission, donate button, impact stats, events |
+| **Freelancer / Consultant** *(pending approval)* | Services, rates, case studies, booking |
+| **Real Estate** *(pending approval)* | Listings, agent profile, contact |
+| **Healthcare / Wellness** *(pending approval)* | Practitioner profile, services, booking |
+| **Event Venue** *(pending approval)* | Calendar, ticketing, gallery, contact |
+
+#### Group
+| USE | Description |
+|-----|-------------|
+| Fan Page | Dedicated to a person, show, team, or brand |
+| Likeminded | Interest-based community (hobby, philosophy, etc.) |
+| Crowd Sourcing | Collaborative projects, idea pooling, fundraising |
+| **Support Group** *(pending approval)* | Private/public peer support, moderated space |
+| **Sports & Recreation Club** *(pending approval)* | Schedule, roster, results, news |
+| **Local Community / Neighborhood** *(pending approval)* | Hyperlocal, events, announcements |
+| **Alumni Network** *(pending approval)* | School/org alumni, reunion events, directory |
+| **Study Group / Academic** *(pending approval)* | Shared notes, resources, discussion |
+| **Book Club** *(pending approval)* | Reading list, meeting schedule, reviews |
+| **Gaming Clan / Guild** *(pending approval)* | Roster, game schedule, achievements |
+| **Activism / Cause** *(pending approval)* | Campaign info, events, resources, donate |
+
+---
+
+### PAGE Templates
+
+All pages are available to any SPACE; template selection is filtered by PURPOSE + USE. Each page is independently themed.
+
+#### PROFILE
+Default landing page for a SPACE.
+Block templates:
+- Banner (hero image + name + tagline)
+- Profile summary card (avatar, handle, quick stats)
+- Pinned content
+- Latest updates (recent activity)
+- Badges (earned/awarded)
+- Selectable highlights from other pages (user picks what surfaces here)
+
+#### ACTIVITY
+Live stream of the SPACE's public actions (posts, follows, reactions, etc.).
+
+#### FEED
+Curated or algorithmic content feed from connected SPACEs and communities.
+
+#### BOARD
+A fully customizable message board built **within the SPACE site** — not a separate platform. Each SPACE owner controls the board's structure, appearance, and who can manage it.
+
+**Board Customization**
+- Sections / categories (user-defined, e.g. "General", "Announcements", "Off-Topic")
+- Per-section permissions (who can post, who can read)
+- Thread display style: classic forum view, Reddit-style card view, or minimal list
+- Sorting options per section: newest, most active, top-rated, pinned-first
+- Posting formats: text only, rich text, images/attachments, polls
+- Board header (banner, name, description, rules)
+- Custom labels/tags for threads (user-defined taxonomy)
+- Board-wide rules panel (pinned, visible to all visitors)
+
+**Role System**
+| Role | Capabilities |
+|------|-------------|
+| Owner | Full control — all settings, all moderation, role assignment |
+| Admin | All moderation + section management; cannot change board owner |
+| Moderator | Pin/unpin, lock/unlock, delete/edit threads and posts; cannot change roles |
+| Member | Post threads and replies (subject to section permissions) |
+| Guest | Read-only (if board is public); cannot post |
+
+- The SPACE owner assigns Admin or Moderator roles to other SPACE users
+- Role assignments are per-board (scoped to this SPACE's board only)
+- Admins can assign Moderator roles but cannot elevate to Admin
+- All role changes are logged for the owner to review
+
+**Moderation Tools**
+- Pin / unpin threads
+- Lock threads (close to new replies)
+- Delete or edit any post (with optional deletion reason)
+- Warn, mute, or ban specific users from the board
+- Report queue for flagged content
+- Audit log (owner + admins can see all moderation actions)
+
+**Thread Features**
+- Nested replies (configurable depth: flat, 1 level, or full nesting)
+- Reactions / upvotes (board owner enables or disables)
+- Polls (optional, per post)
+- Rich text editor (headings, lists, code blocks, embeds, images)
+- @mentions of SPACE users
+- Thread subscriptions (notify on reply)
+
+**Relationship to AGORA**
+The BOARD page is the per-SPACE message board. AGORA (Phase 3) is a separate discovery and aggregation platform — it surfaces and federates public boards across the network, similar to how Reddit aggregates subreddits. A SPACE owner can opt their public board into AGORA for broader visibility.
+
+#### MEDIA
+Block templates:
+- Latest (most recent uploads)
+- Photos grid
+- Videos
+- Reels / Shorts
+- Albums (organized collections)
+- Tagged (content others tagged this SPACE in)
+- Music (tracks + albums, player)
+- Podcast episodes (with player, show notes, subscribe)
+
+#### ABOUT
+Block templates:
+- Bio (freeform text + formatted sections)
+- Links (social links, external URLs)
+- Stats (follower count, member since, posts, etc.)
+- Badges
+- Profile card (compact identity summary)
+- Contact form / contact details
+
+#### BLOG
+Long-form article editor (rich text, images, embeds). Posts have their own URLs. Tagging, categories, series support.
+
+#### LISTS
+Block templates:
+- Playlists (music, video)
+- Favorites
+- Bucket list
+- Watched / To Watch
+- Places Traveled
+- Books Read
+- Beliefs / Values
+
+#### FRIENDS
+Block templates:
+- Following
+- Followed By
+- Best Friends *(privacy-gated)*
+- Worst Enemies *(private, for personal amusement)*
+- Groups / Communities
+- Most Frequent interactions
+- Mutual connections
+
+#### GALLERY
+Full-screen visual gallery. Supports photos, art, screenshots, illustrations. Grid and masonry layouts.
+
+#### SHOP
+Sell physical or digital products directly through the SPACE. Integrates with STORE and payment layer.
+
+#### DASHBOARD
+The LENS-powered personal analytics dashboard embedded in the user's own SPACE. Only visible to the owner by default. Shows data from all connected platforms.
+
+#### CONTACT
+Public contact options (form, email, booking link, social links). Spam protection built in.
+
+#### EVENTS *(suggested — pending approval)*
+Calendar of upcoming events, ticketing integration, RSVP management. For venues, bands, clubs, etc.
+
+#### PORTFOLIO / SHOWCASE *(suggested — pending approval)*
+Case study layout: project image, description, role, tools, outcome. For creatives and freelancers.
+
+#### RESUME / CV *(suggested — pending approval)*
+Structured professional history: work experience, education, skills, certifications. Printable/exportable.
+
+#### PRICING / SERVICES *(suggested — pending approval)*
+Service tiers or product pricing tables. For businesses and freelancers.
+
+#### NEWSLETTER *(suggested — pending approval)*
+Subscribe widget, issue archive, subscriber count. Connects to email delivery layer (future phase).
+
+---
+
+### STORE Integration
+
+Blocks and Modules can be:
+- **Built-in** — shipped with MYSPACE, free
+- **Community-created** — published to the STORE by other users
+- **Purchased / Traded** — paid or bartered through the STORE using platform credits or direct payment
+- **Private** — built by the user, not published
+
+STORE block listings include: preview, price, ratings, review count, install count, author SPACE link.
+
+---
+
+### Social Groups
+
+Users can create **Groups** from any SPACE. A Group is a standalone community space (equivalent to a Facebook Group or subreddit) with:
+- Its own pages (Feed, Board, Media, Members, About, Events)
+- Public / private / invite-only visibility settings
+- Member roles: Owner, Moderator, Member
+- Content moderation tools (reports, ban, mute)
+- ActivityPub federation (group posts federate to member inboxes; external servers can follow the group actor)
+- Group discovery via AGORA (Phase 3) and HUB (Phase 8)
+
+---

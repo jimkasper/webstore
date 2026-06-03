@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal — LIFE</title>
+<link rel="stylesheet" href="../shared.css">
+<style>
+.entry-list { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; overflow-y: auto; flex: 1; }
+.entry-row { padding: 10px 14px; cursor: pointer; border-radius: 0; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.entry-row:hover { background: var(--surface-2); }
+.entry-row.active { background: var(--accent-bg); }
+.entry-title { font-weight: 500; color: var(--text); font-size: 13px; }
+.entry-meta { font-size: 11px; color: var(--text-3); display: flex; gap: 8px; }
+.entry-type { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.type-morning { background: #FEF9C3; color: #A16207; }
+.type-nightly { background: #EDE9FE; color: #7C3AED; }
+.type-decision { background: #DBEAFE; color: #1D4ED8; }
+.type-event { background: var(--green-bg); color: var(--green); }
+
+.editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.prompt-bar { background: #FEF9C3; border-bottom: 1px solid #FDE68A; padding: 12px 24px; font-size: 13px; color: #92400E; display: flex; align-items: center; gap: 8px; }
+.journal-editor { flex: 1; overflow-y: auto; padding: 32px 40px; max-width: 720px; margin: 0 auto; width: 100%; }
+.journal-date { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+.journal-title-input { width: 100%; font-family: var(--font-serif); font-size: 28px; font-weight: 600; border: none; outline: none; color: var(--text); background: transparent; margin-bottom: 20px; line-height: 1.3; }
+.section-prompt { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; margin-top: 24px; display: flex; align-items: center; gap: 6px; }
+.journal-text { width: 100%; border: none; outline: none; font-family: var(--font); font-size: 14px; line-height: 1.8; color: var(--text); background: transparent; resize: none; min-height: 80px; }
+.mood-row { display: flex; gap: 10px; margin: 8px 0; }
+.mood-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border .15s; }
+.mood-btn.active, .mood-btn:hover { border-color: var(--accent); }
+.tag-input-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.editor-toolbar-bottom { border-top: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 8px; background: var(--surface); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="rail">
+    <div class="rail-logo">n</div>
+    <div class="rail-icon" title="DASH">⊞</div>
+    <div class="rail-icon active" title="LIFE">🌿</div>
+    <div class="rail-icon" title="CONNECT">🔗</div>
+    <div class="rail-icon" title="MESSENGER">💬</div>
+    <div class="rail-spacer"></div>
+    <div class="rail-icon" title="Settings">⚙</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span style="font-size:16px">📓</span>
+      <div class="topbar-title">Journal</div>
+      <div class="topbar-sep"></div>
+      <div class="btn btn-ghost btn-sm">All entries</div>
+      <div class="btn btn-ghost btn-sm">Morning</div>
+      <div class="btn btn-ghost btn-sm">Nightly</div>
+      <div class="btn btn-ghost btn-sm">Decisions</div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm">+ New entry</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sidebar: entry list -->
+      <div class="sidebar" style="width:220px;">
+        <div style="padding:10px 12px;">
+          <input class="input" placeholder="🔍 Search entries…" style="font-size:12px;">
+        </div>
+        <div class="entry-list">
+          <div class="entry-row active">
+            <div class="entry-title">Morning — Apr 24</div>
+            <div class="entry-meta"><span class="entry-type type-morning">Morning</span> Today</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Should I take the Berlin project?</div>
+            <div class="entry-meta"><span class="entry-type type-decision">Decision</span> Apr 23</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Nightly — Apr 23</div>
+            <div class="entry-meta"><span class="entry-type type-nightly">Nightly</span> Apr 23</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Conference day two</div>
+            <div class="entry-meta"><span class="entry-type type-event">Event</span> Apr 20</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Morning — Apr 20</div>
+            <div class="entry-meta"><span class="entry-type type-morning">Morning</span> Apr 20</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Nightly — Apr 19</div>
+            <div class="entry-meta"><span class="entry-type type-nightly">Nightly</span> Apr 19</div>
+          </div>
+          <div class="entry-row">
+            <div class="entry-title">Morning — Apr 19</div>
+            <div class="entry-meta"><span class="entry-type type-morning">Morning</span> Apr 19</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="editor-area" style="background:var(--surface);">
+        <div class="prompt-bar">☀️ Good morning. Take a breath before you begin.</div>
+        <div class="journal-editor">
+          <div class="journal-date">Thursday, April 24, 2026 · Morning</div>
+          <input class="journal-title-input" value="Morning — Apr 24" placeholder="Title…">
+
+          <div class="section-prompt">🙏 What am I grateful for today?</div>
+          <textarea class="journal-text" placeholder="Write freely…">The quiet before everyone wakes up. The fact that I slept well for once. The coffee being exactly right.</textarea>
+
+          <div class="section-prompt">🎯 What do I intend to accomplish?</div>
+          <textarea class="journal-text" placeholder="Write freely…">Finish the first draft of the Berlin proposal. Clear my inbox before noon. Call Mum in the evening.</textarea>
+
+          <div class="section-prompt">🌡 How am I feeling right now?</div>
+          <div class="mood-row">
+            <div class="mood-btn">😔</div>
+            <div class="mood-btn">😐</div>
+            <div class="mood-btn active">🙂</div>
+            <div class="mood-btn">😄</div>
+            <div class="mood-btn">🤩</div>
+          </div>
+
+          <div class="section-prompt">📝 Free write (optional)</div>
+          <textarea class="journal-text" placeholder="Anything else on your mind…" style="min-height:120px;">Been thinking a lot about the Berlin thing. It's a good opportunity — six months, great team, meaningful work. The hesitation is just routine anxiety, I think. I've felt this before every good decision I've made.</textarea>
+
+          <div class="tag-input-row">
+            <span class="tag">#morning</span>
+            <span class="tag">#work</span>
+            <span class="tag tag-blue">#berlin</span>
+            <input style="border:none;outline:none;font-size:12px;color:var(--text-3);background:transparent;" placeholder="+ add tag">
+          </div>
+        </div>
+        <div class="editor-toolbar-bottom">
+          <div class="btn btn-ghost btn-sm">🔗 Link to note</div>
+          <div class="btn btn-ghost btn-sm">📅 Link to event</div>
+          <div class="btn btn-ghost btn-sm">✅ Link to task</div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <div class="btn btn-outline btn-sm">Discard</div>
+            <div class="btn btn-primary btn-sm">Save entry</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
