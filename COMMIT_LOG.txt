@@ -1,2 +1,9 @@
+a3b3533 | 2026-11-03 | 4 files, 71 lines
+Add COMMIT_LOG.txt generator and CI workflow
+Every repo now carries a plain-text log of its commit messages
+(scripts/commit-log.sh), refreshed by a GitHub Action, so the
+jimkasper.net Deploy panel can import it with the project and show
+it as a changelog on the Apps page.
+----
 7f653c3 | 2026-06-03 | 353 files, 83517 lines
 init
